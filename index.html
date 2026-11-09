@@ -12,7 +12,8 @@
 <link href="https://fonts.googleapis.com/css2?family=Jua&family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.78.0/dist/umd/supabase.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<script>if(typeof supabase==="undefined")document.write('<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"><\/script>')</script>
 <style>
 :root{--bg:#FFF8FA;--paper:#fff;--ink:#3A2E39;--mute:#9A8A96;--pink:#FF8FAB;--peach:#FFC2A8;--lemon:#FFE08A;--mint:#9FE3CB;--blue:#A8CFFF;--line:#F3E3E8;--soft:#FFF1F4;--bubble:#F6EEF1;--navh:64px}
 *{box-sizing:border-box}html,body{height:100%;margin:0}
@@ -76,7 +77,7 @@ code{background:var(--soft);padding:2px 6px;border-radius:6px;font-size:13px}
 </head>
 <body>
 <div class="app">
-<header class="top"><button class="back" id="topBack" onclick="back()" style="display:none">‹</button><h2 id="topTitle">페이스팔</h2><span class="status" id="netStatus">연결 중</span></header>
+<header class="top"><button class="back" id="topBack" onclick="back()" style="display:none">‹</button><h2 id="topTitle">페이스팔</h2><span class="chip" style="font-size:10px">v2.1</span><span class="status" id="netStatus">연결 중</span></header>
 
 <section class="screen" id="s-setup"><div class="card"><h3>⚙️ Supabase 설정이 필요해요</h3><p class="mute">index.html의 <code>CONFIG</code>에 URL과 publishable key를 넣고 다시 배포하세요.</p></div></section>
 
@@ -428,10 +429,15 @@ function startRealtime(){chan=sb.channel('pacepal',{config:{presence:{key:UID}}}
 
 /* ===== 시작 ===== */
 window.addEventListener('error',e=>{$('netStatus').textContent='오류';toast('오류: '+e.message)});
-(async()=>{if(typeof supabase==='undefined'){$('netStatus').textContent='라이브러리 로드 실패';return toast('Supabase 라이브러리를 불러오지 못했어요. 인터넷 연결을 확인해 주세요')}if(!CONFIG.url||!CONFIG.key){$('netStatus').textContent='설정 필요';return go('s-setup')}
- sb=supabase.createClient(CONFIG.url,CONFIG.key);
- sb.auth.onAuthStateChange(async(ev,session)=>{if(!session){UID=null;$('netStatus').textContent='로그아웃';return go('s-auth')}if(UID===session.user.id)return;UID=session.user.id;
-  const {data}=await sb.from('profiles').select('*').eq('id',UID).maybeSingle();await loadAll();startRealtime();if(data){ME=data;go('s-today')}else go('s-onboard')});
+window.addEventListener('unhandledrejection',e=>{$('netStatus').textContent='오류';toast('오류: '+(e.reason?.message||e.reason))});
+async function enter(session){if(!session){UID=null;$('netStatus').textContent='로그아웃';return go('s-auth')}if(UID===session.user.id)return;UID=session.user.id;
+ try{const {data}=await sb.from('profiles').select('*').eq('id',UID).maybeSingle();await loadAll();startRealtime();if(data){ME=data;go('s-today')}else go('s-onboard')}catch(e){err(e);go('s-auth')}}
+(async()=>{if(typeof supabase==='undefined'){$('netStatus').textContent='라이브러리 로드 실패';return toast('Supabase 라이브러리를 불러오지 못했어요. 인터넷 연결을 확인해 주세요')}
+ if(!CONFIG.url||!CONFIG.key){$('netStatus').textContent='설정 필요';return go('s-setup')}
+ try{sb=supabase.createClient(CONFIG.url,CONFIG.key)}catch(e){$('netStatus').textContent='초기화 실패';return toast('초기화 오류: '+e.message)}
+ const watchdog=setTimeout(()=>{if(!document.querySelector('.screen.on')){$('netStatus').textContent='세션 확인 지연';go('s-auth')}},5000);
+ try{const {data:{session}}=await sb.auth.getSession();clearTimeout(watchdog);await enter(session)}catch(e){clearTimeout(watchdog);err(e);go('s-auth')}
+ sb.auth.onAuthStateChange((ev,session)=>{if(ev==='SIGNED_IN'||ev==='SIGNED_OUT'||ev==='TOKEN_REFRESHED')enter(session)});
 })();
 </script>
 </body>
