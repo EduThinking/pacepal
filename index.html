@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#FFF8FA">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="페이스팔">
+<meta name="description" content="천호지 코스를 페이스메이커 캐릭터와 함께 달리고, 기록·랭킹·커뮤니티로 같이 성장해요.">
+<title>페이스팔 - 같이 달리고, 같이 기록해요!</title>
+<link href="https://fonts.googleapis.com/css2?family=Jua&family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<style>
+:root{--bg:#FFF8FA;--paper:#fff;--ink:#3A2E39;--mute:#9A8A96;--pink:#FF8FAB;--peach:#FFC2A8;--lemon:#FFE08A;--mint:#9FE3CB;--blue:#A8CFFF;--line:#F3E3E8;--soft:#FFF1F4;--bubble:#F6EEF1}
+*{box-sizing:border-box}html,body{height:100%;margin:0}
+body{background:var(--bg);color:var(--ink);font-family:"Noto Sans KR",system-ui,sans-serif;font-size:15px;line-height:1.5;padding-top:env(safe-area-inset-top,0px)}
+h1,h2,h3{font-family:"Jua","Noto Sans KR",sans-serif;font-weight:400;margin:0}h1{font-size:28px}h2{font-size:21px}h3{font-size:17px}
+.app{max-width:440px;margin:0 auto;min-height:100%;display:flex;flex-direction:column}
+.top{position:sticky;top:0;z-index:5;background:var(--bg);padding:12px 18px 8px;display:flex;align-items:center;gap:10px}
+.top h2{flex:1;font-size:22px}.top .back{border:0;background:var(--paper);border-radius:12px;padding:5px 11px;font:700 16px "Noto Sans KR";color:var(--ink);cursor:pointer;box-shadow:0 2px 0 var(--line)}
+.status{font-size:11px;padding:3px 9px;border-radius:999px;background:var(--paper);color:var(--mute)}.status.on{background:#DDF6EC;color:#1E8A63}
+.screen{display:none;flex:1;padding:6px 18px 100px}.screen.on{display:block}
+.sec{margin:18px 0 8px;display:flex;align-items:center;justify-content:space-between}.sec p{margin:2px 0 0;font-size:12px;color:var(--mute)}
+.card{background:var(--paper);border-radius:20px;padding:16px;margin-bottom:12px;box-shadow:0 4px 0 rgba(58,46,57,.05)}.card.tap{cursor:pointer}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;border:0;border-radius:16px;padding:13px 18px;font:500 15px "Noto Sans KR",sans-serif;color:var(--ink);background:var(--lemon);cursor:pointer;box-shadow:0 4px 0 #E4C560;transition:transform .08s}
+.btn:active{transform:translateY(3px);box-shadow:none}.btn:disabled{opacity:.45}
+.btn.pink{background:var(--pink);color:#fff;box-shadow:0 4px 0 #E26A8A}.btn.mint{background:var(--mint);box-shadow:0 4px 0 #6DC9A9}.btn.ghost{background:var(--soft);box-shadow:0 4px 0 var(--line)}
+.btn.wide{width:100%}.btn.sm{padding:7px 13px;font-size:13px;border-radius:12px}.btn.add{background:var(--paper);box-shadow:0 2px 0 var(--line);padding:6px 12px;font-size:13px;border-radius:999px}
+input,select,textarea{width:100%;border:2px solid var(--line);border-radius:14px;padding:11px 12px;font:15px "Noto Sans KR",sans-serif;background:var(--paper);color:var(--ink)}
+label{display:block;font-size:13px;color:var(--mute);margin:10px 0 4px}
+.row{display:flex;gap:10px;align-items:center}.grow{flex:1}.between{justify-content:space-between}.wrap{flex-wrap:wrap}
+.pill{display:inline-block;border-radius:999px;padding:3px 10px;font-size:12px;font-weight:700}.p-easy{background:#DDF6EC;color:#1E8A63}.p-mid{background:#FFF1C7;color:#9A6A00}.p-hard{background:#FFDFD9;color:#C23E2B}
+.mute{color:var(--mute);font-size:13px}.chip{font-size:12px;background:var(--soft);border-radius:999px;padding:3px 9px;color:var(--mute)}
+.opt{display:block;width:100%;text-align:left;background:var(--soft);border:2px solid var(--line);border-radius:16px;padding:12px 14px;margin:6px 0;font:15px "Noto Sans KR",sans-serif;color:var(--ink);cursor:pointer}.opt.sel{border-color:var(--pink);background:#FFE6EC}
+.nav{position:fixed;left:0;right:0;bottom:0;display:flex;justify-content:center;z-index:6}
+.nav .bar{width:100%;max-width:440px;background:var(--paper);border-top:1px solid var(--line);display:flex;padding:6px 2px calc(8px + env(safe-area-inset-bottom,0px))}
+.nav button{flex:1;border:0;background:none;font:11px "Noto Sans KR";color:var(--mute);cursor:pointer;padding:4px 0;border-radius:12px}.nav button span{display:block;font-size:21px}.nav button.cur{color:var(--pink);font-weight:700}
+.seg{display:flex;background:var(--paper);border-radius:999px;padding:4px;margin-bottom:12px}.seg button{flex:1;border:0;border-radius:999px;padding:9px;font:600 14px "Noto Sans KR";color:var(--mute);background:none;cursor:pointer}.seg button.cur{background:var(--pink);color:#fff}
+.tabs{display:flex;gap:6px;margin-bottom:10px;overflow-x:auto}.tabs button{flex:none;border:0;border-radius:999px;padding:7px 12px;background:var(--paper);font:13px "Noto Sans KR";color:var(--mute);cursor:pointer}.tabs button.cur{background:var(--ink);color:#fff}
+.steps{display:flex;gap:6px;margin:4px 0 14px}.steps span{flex:1;text-align:center;font-size:12px;color:var(--mute);padding:6px;border-radius:999px;background:var(--paper)}.steps span.cur{background:var(--pink);color:#fff;font-weight:700}
+.datebar{display:flex;align-items:center;justify-content:center;gap:14px;margin:4px 0 10px}.datebar button{border:0;background:var(--paper);border-radius:10px;width:34px;height:34px;font-size:18px;cursor:pointer;box-shadow:0 2px 0 var(--line)}.datebar b{font-family:"Jua";font-size:20px;font-weight:400}
+.stat{text-align:center}.stat b{display:block;font-family:"Jua";font-size:24px;font-weight:400}.stat small{color:var(--mute)}
+.map{background:#EAF4E4;border-radius:20px;overflow:hidden;position:relative;border:2px solid #CFE3C3}.map svg{display:block;width:100%;height:auto}
+.zoombtn{position:absolute;right:10px;top:10px;display:flex;gap:6px}.zoombtn button{border:0;border-radius:12px;background:#fff;padding:6px 10px;font:700 13px "Noto Sans KR";cursor:pointer;color:#2B3556;box-shadow:0 3px 0 #CFE3C3}
+.leg{transform-box:fill-box;transform-origin:top center;animation:leg .36s infinite alternate ease-in-out}.leg.b{animation-delay:-.18s}@keyframes leg{from{transform:rotate(-32deg)}to{transform:rotate(32deg)}}
+.bob{animation:bob .36s infinite alternate ease-in-out}@keyframes bob{from{transform:translateY(0)}to{transform:translateY(-2px)}}
+.shake{animation:shake .4s 3}@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
+.breath{display:flex;gap:4px;align-items:flex-end;height:34px}.breath i{width:7px;background:var(--blue);border-radius:4px;animation:br 1.1s infinite ease-in-out}@keyframes br{0%,100%{height:8px}50%{height:34px}}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:100px;background:var(--ink);color:#fff;padding:10px 16px;border-radius:999px;font-size:14px;opacity:0;transition:opacity .2s;pointer-events:none;z-index:20;max-width:90%}.toast.show{opacity:1}
+.rank{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px dashed var(--line)}.rank:last-child{border:0}.rank .n{width:26px;font-family:"Jua";font-size:18px;text-align:center}.me{background:#FFF3C4;margin:0 -8px;padding:9px 8px;border-radius:12px}
+.avatar{width:38px;height:38px;border-radius:50%;background:var(--soft);display:grid;place-items:center;font-size:20px;flex:none}.avatar.s{width:30px;height:30px;font-size:15px}
+.tier{display:flex;align-items:center;gap:12px;padding:10px;border-radius:16px;margin:6px 0;background:var(--soft)}.tier.cur{background:#FFF3C4;outline:2px solid var(--lemon)}.tier .ic{font-size:26px}
+.bar{height:10px;background:var(--line);border-radius:6px;overflow:hidden}.bar i{display:block;height:100%;background:var(--mint)}
+.runhud{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin:12px 0}.runhud div{background:var(--paper);border-radius:16px;padding:10px;text-align:center}.runhud b{font-family:"Jua";font-size:22px;font-weight:400;display:block}.runhud small{color:var(--mute);font-size:12px}
+.post{padding:12px 0;border-bottom:1px dashed var(--line);cursor:pointer}.post:last-child{border:0}.post h3{font-size:16px}.post .meta{font-size:12px;color:var(--mute);margin-top:3px}
+.cmt{padding:8px 0;border-bottom:1px dashed var(--line);font-size:14px}.cmt:last-child{border:0}.cmt b{font-size:13px}
+.slot{display:flex;align-items:center;gap:10px;padding:10px;border-radius:16px;background:var(--soft);margin:6px 0}.slot b{font-family:"Jua";font-size:18px;font-weight:400;width:56px}
+.chat{display:flex;flex-direction:column;gap:8px;min-height:280px;max-height:50vh;overflow-y:auto;padding:4px 2px}
+.msg{display:flex;gap:8px;align-items:flex-end}.msg.mine{flex-direction:row-reverse}.msg .b{background:var(--bubble);border-radius:16px 16px 16px 4px;padding:8px 12px;max-width:75%;font-size:14px;overflow-wrap:anywhere}.msg.mine .b{background:var(--lemon);border-radius:16px 16px 4px 16px}
+.msg .who{font-size:11px;color:var(--mute);margin-bottom:2px}.msg time{font-size:10px;color:var(--mute)}
+.online{display:flex;gap:4px;flex-wrap:wrap}.online span{font-size:12px;background:#DDF6EC;color:#1E8A63;border-radius:999px;padding:2px 8px}
+.composer{display:flex;gap:8px;margin-top:10px}.composer input{flex:1}
+.empty{text-align:center;color:var(--mute);padding:18px 0;font-size:14px}
+.modal{position:fixed;inset:0;background:rgba(58,46,57,.35);display:none;align-items:flex-end;justify-content:center;z-index:15}.modal.on{display:flex}
+.sheet{width:100%;max-width:440px;background:var(--bg);border-radius:24px 24px 0 0;padding:18px 18px calc(24px + env(safe-area-inset-bottom,0px));max-height:88vh;overflow-y:auto}
+.sheet .hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}.sheet .x{border:0;background:var(--paper);border-radius:50%;width:34px;height:34px;font-size:18px;cursor:pointer}
+.mood{display:flex;gap:6px}.mood button{flex:1;border:2px solid var(--line);background:var(--paper);border-radius:14px;font-size:24px;padding:6px;cursor:pointer}.mood button.sel{border-color:var(--pink);background:#FFE6EC}
+code{background:var(--soft);padding:2px 6px;border-radius:6px;font-size:13px}
+@media (prefers-reduced-motion:reduce){.leg,.bob,.breath i,.shake{animation:none}}
+</style>
+</head>
+<body>
+<div class="app">
+<header class="top"><button class="back" id="topBack" onclick="back()" style="display:none">‹</button><h2 id="topTitle">페이스팔</h2><span class="status" id="netStatus">연결 중</span></header>
+
+<section class="screen" id="s-setup">
+  <div class="card"><h3>⚙️ Supabase 설정이 필요해요</h3><p class="mute">index.html 맨 아래 <code>CONFIG</code>에 Supabase 프로젝트의 URL과 anon key를 넣고 다시 배포하세요. 그리고 <code>supabase.sql</code>을 SQL Editor에서 실행해 테이블을 만들어 주세요.</p></div>
+</section>
+
+<section class="screen" id="s-auth">
+  <div style="text-align:center;padding:14px 0 6px"><svg width="150" height="100" viewBox="0 0 160 110" aria-hidden="true"><ellipse cx="80" cy="100" rx="60" ry="7" fill="rgba(58,46,57,.08)"/><g transform="translate(40,20)" id="heroMe"></g><g transform="translate(95,30)" id="heroPacer"></g></svg><h1>페이스팔</h1><p class="mute">천호지에서 페이스메이커와 같이 달려요</p></div>
+  <div class="seg"><button class="cur" id="segLogin" onclick="authMode('login')">로그인</button><button id="segSignup" onclick="authMode('signup')">처음이에요 (가입)</button></div>
+  <div class="card"><label>이메일</label><input id="aEmail" type="email" placeholder="you@bu.ac.kr" autocomplete="email"><label>비밀번호</label><input id="aPw" type="password" placeholder="6자 이상" autocomplete="current-password"></div>
+  <button class="btn pink wide" id="authBtn" onclick="doAuth()">로그인</button>
+  <p class="mute" style="text-align:center;margin-top:12px">각자 자기 이메일로 가입해요. 같은 계정으로 로그인하면 휴대폰·컴퓨터 어디서든 기록이 이어져요.</p>
+</section>
+
+<section class="screen" id="s-onboard">
+  <div class="steps"><span class="cur" id="st1">1 나</span><span id="st2">2 목표</span><span id="st3">3 페이스메이커</span></div>
+  <div id="ob1"><div class="card"><label>닉네임</label><input id="nick" placeholder="예) 달리는 백석이" maxlength="16"><label>내 캐릭터 색</label><div class="row" id="meColors"></div></div><button class="btn pink wide" onclick="obStep(2)">다음: 목표 고르기</button></div>
+  <div id="ob2" style="display:none"><div class="card"><b>일주일에 몇 번 달리나요?</b><button class="opt" data-q="0" data-v="0">거의 안 뛰어요</button><button class="opt" data-q="0" data-v="1">1~2번</button><button class="opt" data-q="0" data-v="2">3번 이상</button></div><div class="card"><b>쉬지 않고 얼마나 달릴 수 있나요?</b><button class="opt" data-q="1" data-v="0">10분 이내</button><button class="opt" data-q="1" data-v="1">10~30분</button><button class="opt" data-q="1" data-v="2">30분 넘게</button></div><div class="card"><b>5km를 완주해 본 적이 있나요?</b><button class="opt" data-q="2" data-v="0">아직이요</button><button class="opt" data-q="2" data-v="1">천천히 완주해 봤어요</button><button class="opt" data-q="2" data-v="2">30분 안에 뛰어요</button></div><button class="btn pink wide" onclick="obStep(3)">다음: 페이스메이커 고르기</button></div>
+  <div id="ob3" style="display:none"><h2 id="levelTitle"></h2><p class="mute" id="levelDesc"></p><div class="card"><b>목표 페이스 (1km당)</b><div class="row wrap" id="paceOpts" style="margin-top:8px"></div><label>직접 입력</label><div class="row"><input id="pm" type="number" min="3" max="15" placeholder="분" style="width:80px"><span>분</span><input id="ps" type="number" min="0" max="59" placeholder="초" style="width:80px"><span>초</span></div></div><div class="card"><b>페이스메이커</b><div class="row" id="pacerOpts" style="margin-top:8px"></div></div><button class="btn pink wide" onclick="finishOnboard()">저장하고 시작하기</button></div>
+</section>
+
+<!-- 오늘 -->
+<section class="screen" id="s-today">
+  <div class="datebar"><button onclick="shiftDay(-1)">‹</button><b id="dateLbl">오늘</b><button onclick="shiftDay(1)">›</button></div>
+  <div class="row"><button class="btn pink grow" onclick="go('s-course')">🏃 달리기<br><small style="font-weight:400">코스·페이스메이커</small></button><button class="btn grow" onclick="openModal('m-res')">📅 함께 뛰기<br><small style="font-weight:400">시간대 예약</small></button></div>
+  <div class="sec"><div><h3>달린 것</h3><p>이 날 완주한 기록</p></div><button class="btn add" onclick="go('s-course')">+ 추가</button></div>
+  <div class="card" id="todayRuns"></div>
+  <div class="sec"><div><h3>페이스 7일 그래프</h3><p>점선 = 목표 페이스</p></div></div>
+  <div class="card" id="weekChart"></div>
+  <div class="sec"><div><h3>예약</h3><p>이 날 함께 뛰기로 한 시간</p></div><button class="btn add" onclick="openModal('m-res')">+ 추가</button></div>
+  <div class="card" id="todayRes"></div>
+  <div class="sec"><div><h3>오늘 컨디션</h3><p>달리기 전 몸 상태</p></div></div>
+  <div class="card"><div class="mood" id="moodBtns"></div><input id="moodNote" placeholder="메모 (선택)" style="margin-top:8px" maxlength="80"><button class="btn sm wide" style="margin-top:8px" onclick="saveMood()">저장</button></div>
+</section>
+
+<!-- 분석 -->
+<section class="screen" id="s-analysis">
+  <div class="card row" style="justify-content:space-around"><div class="stat"><b id="anRuns">0</b><small>완주</small></div><div class="stat"><b id="anKm">0</b><small>총 km</small></div><div class="stat"><b id="anBest">–</b><small>최고 페이스</small></div><div class="stat"><b id="anWeek">–</b><small>주간 최고</small></div></div>
+  <div class="sec"><div><h3>🧬 내 러닝 유형</h3><p>완주할 때마다 쌓여요</p></div></div><div class="card" id="typeDist"></div>
+  <div class="sec"><div><h3>📈 최근 10회 페이스</h3></div></div><div class="card" id="recentChart"></div>
+  <div class="sec"><div><h3>🎖️ 티어</h3><p>주간 최고 페이스가 기준을 넘으면 승급</p></div></div>
+  <div class="card"><div class="row between"><div><b id="tierNow"></b><div class="mute" id="tierSub"></div></div><div style="font-size:40px" id="tierIc"></div></div><div class="bar" style="margin-top:10px"><i id="tierBar" style="width:0"></i></div><button class="btn mint wide" style="margin-top:10px" id="promoteBtn" onclick="promote()"></button></div>
+  <div id="tierList"></div>
+</section>
+
+<!-- 코스 -->
+<section class="screen" id="s-course"><div id="courseList"></div><p class="mute">거리는 지도 기준 추정값이에요. 실제로 달리며 확인해 주세요.</p></section>
+<section class="screen" id="s-detail">
+  <div class="row between"><span id="cDiff"></span><span class="chip" id="cRunners"></span></div><p class="mute" id="cDesc" style="margin:6px 0 10px"></p>
+  <div class="map" id="cMap"></div>
+  <div class="card row" style="justify-content:space-around;margin-top:12px"><div class="stat"><b id="cKm"></b><small>km</small></div><div class="stat"><b id="cBest">–</b><small>내 최고</small></div><div class="stat"><b id="cTop">–</b><small>1위 기록</small></div></div>
+  <button class="btn pink wide" onclick="startRun()">▶ 페이스메이커와 달리기</button>
+  <div class="row" style="margin-top:8px"><button class="btn ghost grow" onclick="openRank(curCourse)">🏆 랭킹</button><button class="btn ghost grow" onclick="openChat(curCourse)">💬 코스 채팅</button><button class="btn ghost grow" onclick="openModal('m-res')">📅 예약</button></div>
+</section>
+<section class="screen" id="s-run">
+  <div class="row between" style="margin-bottom:8px"><span class="chip" id="rPace"></span><span class="chip">10배속 시뮬레이션</span></div>
+  <div class="map" id="rMap"><div class="zoombtn"><button onclick="setZoom(true)" id="zIn">확대</button><button onclick="setZoom(false)" id="zOut">축소</button></div></div>
+  <div class="runhud"><div><b id="hTime">0:00</b><small>시간</small></div><div><b id="hDist">0.00</b><small>km</small></div><div><b id="hPace">–</b><small>현재 페이스</small></div></div>
+  <div class="card row between"><div><b id="gapTxt"></b><div class="mute" id="gapSub"></div></div><div class="breath"><i></i><i style="animation-delay:.2s"></i><i style="animation-delay:.4s"></i><i style="animation-delay:.6s"></i></div></div>
+  <div class="card row between"><div><b>호흡</b> <span class="chip">이어폰 마이크 (시뮬레이션)</span><div id="breathTxt" class="mute"></div></div><span style="font-size:26px" id="breathIc"></span></div>
+  <div class="row"><button class="btn mint grow" onclick="boost(0.88)">🔥 스퍼트</button><button class="btn grow" onclick="boost(1)">😌 유지</button><button class="btn ghost grow" onclick="boost(1.18)">🐢 쉬어가기</button></div>
+  <p class="mute" style="text-align:center;margin:10px 0">페이스가 떨어지면 진동이 울려요.</p><button class="btn ghost wide" onclick="stopRun()">그만두기</button>
+</section>
+<section class="screen" id="s-result">
+  <div style="text-align:center;padding:6px 0 14px"><div style="font-size:64px" id="resIc"></div><h1 id="resType"></h1><p class="mute" id="resDesc"></p></div>
+  <div class="card row" style="justify-content:space-around"><div class="stat"><b id="resTime"></b><small>기록</small></div><div class="stat"><b id="resPace"></b><small>평균 페이스</small></div><div class="stat"><b id="resRank"></b><small>코스 순위</small></div></div>
+  <div class="card"><b>구간별 페이스</b><div id="splits" style="margin-top:8px"></div></div><div class="card" id="resPacer"></div>
+  <div class="row"><button class="btn pink grow" onclick="openRank(curCourse)">랭킹 보기</button><button class="btn ghost grow" onclick="go('s-today')">오늘로</button></div>
+</section>
+
+<!-- 랭킹 -->
+<section class="screen" id="s-rank"><div class="tabs" id="rankTabs"></div><div class="card" id="rankList"></div>
+  <div class="card"><b>이번 주 도전</b><p class="mute" style="margin:4px 0 8px">천호지 한 바퀴를 3번 완주하면 배지를 받아요.</p><div class="bar"><i id="chalBar" style="width:0"></i></div><div class="mute" id="chalTxt" style="margin-top:4px"></div></div></section>
+
+<!-- 커뮤니티 -->
+<section class="screen" id="s-comm">
+  <div class="seg"><button class="cur" id="segChat" onclick="commTab('chat')">실시간 채팅</button><button id="segBoard" onclick="commTab('board')">게시판</button></div>
+  <div id="comm-chat"><div class="tabs" id="roomTabs"></div><div class="card"><div class="row between" style="margin-bottom:8px"><b id="roomName"></b><div class="online" id="online"></div></div><div class="chat" id="chatBox"></div><div class="composer"><input id="chatIn" placeholder="메시지" maxlength="300"><button class="btn sm" onclick="sendChat()">보내기</button></div></div></div>
+  <div id="comm-board" style="display:none"><div class="row between"><div class="tabs grow" id="catTabs"></div><button class="btn add" onclick="openModal('m-write')">✏️ 글쓰기</button></div><div class="card" id="posts"></div></div>
+</section>
+<section class="screen" id="s-post"><div class="card" id="postView"></div><div class="sec"><h3>💬 댓글</h3></div><div class="card"><div id="comments"></div><div class="composer"><input id="cmtIn" placeholder="댓글 쓰기" maxlength="300"><button class="btn sm" onclick="sendComment()">등록</button></div></div></section>
+
+<!-- 내 정보 -->
+<section class="screen" id="s-me">
+  <div class="card row"><div class="avatar" id="meAv"></div><div class="grow"><b id="meHi"></b><div class="mute" id="meSub"></div></div></div>
+  <div class="card"><label>닉네임</label><input id="setNick" maxlength="16"><label>레벨</label><select id="setLevel"><option>초급자</option><option>중급자</option><option>상급자</option></select><label>목표 페이스 (분:초)</label><div class="row"><input id="setPm" type="number" min="3" max="15" style="width:80px"><span>:</span><input id="setPs" type="number" min="0" max="59" style="width:80px"></div><label>페이스메이커</label><div class="row" id="setPacer"></div><button class="btn wide" style="margin-top:12px" onclick="saveSettings()">저장</button></div>
+  <button class="btn ghost wide" onclick="logout()">로그아웃</button>
+</section>
+</div>
+
+<nav class="nav" id="nav" style="display:none"><div class="bar">
+  <button onclick="go('s-today')" data-n="s-today"><span>📅</span>오늘</button><button onclick="go('s-analysis')" data-n="s-analysis"><span>📊</span>분석</button><button onclick="go('s-course')" data-n="s-course"><span>🏃</span>코스</button><button onclick="openRank()" data-n="s-rank"><span>🏆</span>랭킹</button><button onclick="go('s-comm')" data-n="s-comm"><span>💬</span>커뮤니티</button><button onclick="go('s-me')" data-n="s-me"><span>🙂</span>내 정보</button>
+</div></nav>
+
+<div class="modal" id="m-res"><div class="sheet"><div class="hd"><h2>함께 뛰기 예약</h2><button class="x" onclick="closeModal()">✕</button></div><label>코스</label><select id="resCourse" onchange="renderSlots()"></select><label>날짜</label><input id="resDate" type="date" onchange="renderSlots()"><div id="slots" style="margin-top:8px"></div></div></div>
+<div class="modal" id="m-write"><div class="sheet"><div class="hd"><h2>새 글</h2><button class="x" onclick="closeModal()">✕</button></div><label>카테고리</label><select id="wCat"></select><label>제목</label><input id="wTitle" maxlength="60"><label>내용</label><textarea id="wBody" rows="6" maxlength="2000" placeholder="코스 상태, 같이 뛸 사람 구하기, 러닝 팁"></textarea><button class="btn pink wide" style="margin-top:12px" onclick="submitPost()">올리기</button></div></div>
+<div class="toast" id="toast"></div>
+
+<script>
+/* ===== 설정: Supabase 프로젝트 값 입력 ===== */
+const CONFIG={url:'https://xjleygzbutfgpwsvcexl.supabase.co',key:'sb_publishable_1Kehy6yDK0-Z6mkVauW1oQ_dSGMSiIu'};
+
+/* ===== 정적 데이터 ===== */
+const COURSES=[
+ {id:'ch1',name:'천호지 한 바퀴',km:2.4,diff:'쉬움',cls:'p-easy',desc:'백석대 앞 천호지 둘레길을 한 바퀴. 평지라 처음 뛰기에 좋아요.',loop:true,laps:1,path:'M60,110 C55,60 110,35 165,40 C225,45 270,70 265,115 C260,165 215,185 160,180 C100,175 65,160 60,110 Z'},
+ {id:'ch2',name:'천호지 두 바퀴',km:4.8,diff:'보통',cls:'p-mid',desc:'둘레길을 두 바퀴 돌아요. 5km 도전 전 연습 코스.',loop:true,laps:2,path:'M60,110 C55,60 110,35 165,40 C225,45 270,70 265,115 C260,165 215,185 160,180 C100,175 65,160 60,110 Z'},
+ {id:'gate',name:'정문에서 천호지 왕복',km:3.5,diff:'보통',cls:'p-mid',desc:'백석대 정문에서 출발해 천호지를 찍고 돌아와요. 내리막과 오르막이 섞여 있어요.',loop:false,laps:1,path:'M30,170 C70,150 90,120 140,110 C190,100 230,90 290,50'},
+ {id:'taejo',name:'태조산 공원 오르막',km:3.0,diff:'어려움',cls:'p-hard',desc:'안서동에서 태조산 공원 입구까지 오르막. 다리가 터지는 상급 코스.',loop:false,laps:1,path:'M30,180 C60,175 90,150 120,140 C150,130 160,100 200,90 C240,80 250,50 290,35'}];
+const PACERS=[{id:'rabbit',name:'토토',ic:'🐰',color:'#A8CFFF',tip:'또박또박 페이스 유지'},{id:'turtle',name:'꾸북',ic:'🐢',color:'#9FE3CB',tip:'천천히 함께'},{id:'cheetah',name:'치치',ic:'🐆',color:'#FFE08A',tip:'스퍼트 좋아함'}];
+const MECOLORS=['#FF8FAB','#FFC2A8','#B5A8FF','#8FD3FF'];
+const TIERS=[{n:'달린이',ic:'🐣',pace:999},{n:'달리기 새싹',ic:'🌱',pace:450},{n:'달리기 중수',ic:'🏃',pace:390},{n:'달리기 고수',ic:'⚡',pace:330},{n:'달인',ic:'👑',pace:290}];
+const TYPES={fire:['🔥','초반 불꽃형','초반에는 쌩쌩 달리다 후반에 페이스가 뚝. 다음엔 시작을 10초만 천천히!'],late:['🚀','뒷심 폭발형','뒤로 갈수록 빨라지는 타입. 초반을 조금 더 밀어도 괜찮아요.'],metro:['🎵','메트로놈형','구간 편차가 아주 적어요. 페이스메이커가 질투할 정도.'],coaster:['🎢','롤러코스터형','빨라졌다 느려졌다 반복. 호흡 리듬을 먼저 잡아봐요.'],glue:['🧲','페메 껌딱지형','끝까지 페이스메이커 옆에 딱 붙어 달렸어요. 목표 페이스를 올려볼 때!'],walk:['🌿','느긋한 산책형','목표보다 여유롭게 달렸어요. 즐기는 게 먼저니까 괜찮아요.']};
+const CATS=['자유','코스정보','같이뛰어요','질문'];const ROOMS=[{id:'all',name:'전체방'},...COURSES.map(c=>({id:c.id,name:c.name}))];const SLOTS=['06:30','07:00','12:30','18:00','19:30','21:00'];const MOODS=['😫','😕','😐','🙂','🤩'];
+const TITLES={'s-auth':'페이스팔','s-onboard':'시작 설정','s-today':'오늘','s-analysis':'분석','s-course':'코스','s-rank':'랭킹','s-comm':'커뮤니티','s-post':'게시글','s-me':'내 정보','s-result':'러닝 결과','s-setup':'설정 필요'};
+const ROOT=['s-today','s-analysis','s-course','s-rank','s-comm','s-me'];const PARENT={'s-detail':'s-course','s-run':'s-detail','s-result':'s-detail','s-post':'s-comm'};
+
+/* ===== 상태 ===== */
+let sb=null,UID=null,ME=null,PROFILES={},RUNS=[],POSTS=[],LIKES=[],MSGS=[],RES=[],ONLINE=[],chan=null,presence=null;
+let curCourse='ch1',curRoom='all',curCat='전체',curPost=null,day=new Date(),meColor=MECOLORS[0],hist=[];
+const $=id=>document.getElementById(id);const fmt=s=>{s=Math.round(s);return Math.floor(s/60)+':'+String(s%60).padStart(2,'0')};
+const pcr=id=>PACERS.find(p=>p.id===id)||PACERS[0];const crs=id=>COURSES.find(c=>c.id===id);const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const ago=t=>{const d=(Date.now()-new Date(t))/1000;return d<60?'방금':d<3600?Math.floor(d/60)+'분 전':d<86400?Math.floor(d/3600)+'시간 전':Math.floor(d/86400)+'일 전'};
+const iso=d=>{const z=new Date(d.getTime()-d.getTimezoneOffset()*6e4);return z.toISOString().slice(0,10)};
+const nickOf=id=>PROFILES[id]?.nick||'러너';const icOf=id=>pcr(PROFILES[id]?.pacer).ic;
+function toast(t){const e=$('toast');e.textContent=t;e.classList.add('show');clearTimeout(e._t);e._t=setTimeout(()=>e.classList.remove('show'),2200)}
+function err(e){console.error(e);toast(e?.message||'오류가 났어요')}
+function myRuns(){return RUNS.filter(r=>r.user_id===UID)}
+function weekBest(){const w=Date.now()-7*864e5;const r=myRuns().filter(r=>new Date(r.created_at)>w);return r.length?Math.min(...r.map(r=>+r.avg_pace)):0}
+
+/* ===== 캐릭터 ===== */
+function charSVG(color,face,scale=1){return `<g transform="scale(${scale})"><g class="bob"><g transform="translate(6,22)"><rect class="leg" x="-3" y="0" width="6" height="12" rx="3" fill="${color}"/><rect class="leg b" x="6" y="0" width="6" height="12" rx="3" fill="${color}"/></g><circle cx="12" cy="12" r="13" fill="${color}"/><circle cx="7" cy="10" r="2" fill="#3A2E39"/><circle cx="16" cy="10" r="2" fill="#3A2E39"/><path d="M8,16 Q12,19 16,16" stroke="#3A2E39" stroke-width="1.6" fill="none" stroke-linecap="round"/><circle cx="4" cy="14" r="2.2" fill="#FF9CA8" opacity=".8"/><circle cx="20" cy="14" r="2.2" fill="#FF9CA8" opacity=".8"/><text x="12" y="-3" font-size="9" text-anchor="middle">${face}</text></g></g>`}
+$('heroMe').innerHTML=charSVG('#FF8FAB','🏃',1.6);$('heroPacer').innerHTML=charSVG('#A8CFFF','🐰',1.3);
+
+/* ===== 화면 ===== */
+function go(id,push=true){const cur=document.querySelector('.screen.on');if(push&&cur&&cur.id!==id&&!ROOT.includes(id)&&cur.id!=='s-run')hist.push(cur.id);if(ROOT.includes(id))hist=[];
+ document.querySelectorAll('.screen').forEach(s=>s.classList.toggle('on',s.id===id));let root=id;while(!ROOT.includes(root)&&PARENT[root])root=PARENT[root];
+ document.querySelectorAll('.nav button').forEach(b=>b.classList.toggle('cur',b.dataset.n===root));
+ $('nav').style.display=(ROOT.includes(root)&&id!=='s-run')?'flex':'none';$('topBack').style.display=(ROOT.includes(id)||['s-run','s-auth','s-onboard','s-setup'].includes(id))?'none':'';
+ if(TITLES[id])$('topTitle').textContent=TITLES[id];
+ ({'s-today':renderToday,'s-analysis':renderAnalysis,'s-course':renderCourses,'s-comm':renderComm,'s-me':renderMe})[id]?.();window.scrollTo(0,0)}
+function back(){const cur=document.querySelector('.screen.on').id;go(hist.pop()||PARENT[cur]||'s-today',false)}
+function openModal(id){if(id==='m-res'){const sel=$('resCourse');if(!sel.options.length)sel.innerHTML=COURSES.map(c=>`<option value="${c.id}">${c.name}</option>`).join('');sel.value=curCourse;$('resDate').value=iso(day<new Date(new Date().toDateString())?new Date():day);renderSlots()}
+ if(id==='m-write'&&!$('wCat').options.length)$('wCat').innerHTML=CATS.map(c=>`<option>${c}</option>`).join('');$(id).classList.add('on')}
+function closeModal(){document.querySelectorAll('.modal').forEach(m=>m.classList.remove('on'))}
+document.querySelectorAll('.modal').forEach(m=>m.addEventListener('click',e=>{if(e.target===m)closeModal()}));
+
+/* ===== 인증 ===== */
+let mode='login';
+function authMode(m){mode=m;$('segLogin').classList.toggle('cur',m==='login');$('segSignup').classList.toggle('cur',m==='signup');$('authBtn').textContent=m==='login'?'로그인':'가입하기'}
+async function doAuth(){const email=$('aEmail').value.trim(),password=$('aPw').value;if(!email||password.length<6)return toast('이메일과 6자 이상 비밀번호를 입력해 주세요');$('authBtn').disabled=true;
+ try{const r=mode==='login'?await sb.auth.signInWithPassword({email,password}):await sb.auth.signUp({email,password});if(r.error)throw r.error;
+  if(mode==='signup'&&!r.data.session){toast('가입 확인 메일을 보냈어요. 메일의 링크를 누른 뒤 로그인해 주세요')}}catch(e){toast(e.message.includes('Invalid login')?'이메일 또는 비밀번호가 틀려요':e.message)}
+ $('authBtn').disabled=false}
+async function logout(){await sb.auth.signOut();location.reload()}
+
+/* ===== 온보딩 ===== */
+const ans=[null,null,null];let obLevel=null;
+document.querySelectorAll('.opt[data-q]').forEach(b=>b.onclick=()=>{ans[b.dataset.q]=+b.dataset.v;document.querySelectorAll(`.opt[data-q="${b.dataset.q}"]`).forEach(x=>x.classList.remove('sel'));b.classList.add('sel')});
+function obStep(n){if(n===2&&!$('nick').value.trim())return toast('닉네임을 입력해 주세요');if(n===3){if(ans.some(a=>a===null))return toast('세 질문에 모두 답해 주세요');
+  const sc=ans.reduce((a,b)=>a+b,0);obLevel=sc<=1?['초급자','처음이라면 7분대 페이스로 편하게 시작해요.',[450,480,510]]:sc<=4?['중급자','6분대 페이스가 잘 맞아요. 5km 목표를 세워봐요.',[360,390,420]]:['상급자','5분대 페이스로 기록에 도전해요.',[290,310,330]];
+  $('levelTitle').textContent=`당신은 ${obLevel[0]}!`;$('levelDesc').textContent=obLevel[1];obPace=obLevel[2][1];
+  $('paceOpts').innerHTML=obLevel[2].map((p,i)=>`<button class="opt sel-p ${i===1?'sel':''}" data-p="${p}" style="width:auto;flex:1;text-align:center">${fmt(p)}<br><small class="mute">${['빠르게','추천','편하게'][i]}</small></button>`).join('');
+  document.querySelectorAll('.sel-p').forEach(b=>b.onclick=()=>{document.querySelectorAll('.sel-p').forEach(x=>x.classList.remove('sel'));b.classList.add('sel');obPace=+b.dataset.p;$('pm').value='';$('ps').value=''});
+  $('pacerOpts').innerHTML=pacerPicker('pc',obPacer)}
+ [1,2,3].forEach(i=>{$('ob'+i).style.display=i===n?'':'none';$('st'+i).classList.toggle('cur',i===n)});window.scrollTo(0,0)}
+let obPace=390,obPacer='rabbit';
+function pacerPicker(cls,sel){return PACERS.map(p=>`<button class="opt ${cls} ${p.id===sel?'sel':''}" data-id="${p.id}" style="text-align:center" onclick="pickPacer(this,'${cls}')"><span style="font-size:26px">${p.ic}</span><br>${p.name}<br><small class="mute">${p.tip}</small></button>`).join('')}
+function pickPacer(b,cls){document.querySelectorAll('.'+cls).forEach(x=>x.classList.remove('sel'));b.classList.add('sel');if(cls==='pc')obPacer=b.dataset.id;else ME.pacer=b.dataset.id}
+$('meColors').innerHTML=MECOLORS.map(c=>`<button class="opt" style="width:44px;height:44px;padding:0;background:${c};border-radius:50%" onclick="meColor='${c}';document.querySelectorAll('#meColors .opt').forEach(x=>x.classList.remove('sel'));this.classList.add('sel')"></button>`).join('');
+async function finishOnboard(){const m=+$('pm').value,s=+$('ps').value||0;if(m)obPace=m*60+s;const row={id:UID,nick:$('nick').value.trim(),level:obLevel[0],pace:obPace,pacer:obPacer,tier:0};
+ const {error}=await sb.from('profiles').upsert(row);if(error)return err(error);ME=row;PROFILES[UID]=row;toast(`환영해요, ${ME.nick}!`);await loadAll();go('s-today')}
+
+/* ===== 데이터 로드 ===== */
+async function loadAll(){const [p,r,po,li,re]=await Promise.all([sb.from('profiles').select('*'),sb.from('runs').select('*').order('created_at',{ascending:false}).limit(2000),sb.from('posts').select('*').order('created_at',{ascending:false}).limit(300),sb.from('likes').select('*'),sb.from('reservations').select('*').gte('run_date',iso(new Date(Date.now()-864e5)))]);
+ PROFILES={};(p.data||[]).forEach(x=>PROFILES[x.id]=x);RUNS=r.data||[];POSTS=po.data||[];LIKES=li.data||[];RES=re.data||[];$('netStatus').textContent='온라인';$('netStatus').classList.add('on')}
+
+/* ===== 오늘 ===== */
+function shiftDay(n){day=new Date(day.getTime()+n*864e5);renderToday()}
+async function renderToday(){const d=iso(day),today=iso(new Date());$('dateLbl').textContent=d===today?'오늘':d===iso(new Date(Date.now()-864e5))?'어제':d===iso(new Date(Date.now()+864e5))?'내일':`${day.getMonth()+1}월 ${day.getDate()}일`;
+ const rs=myRuns().filter(r=>iso(new Date(r.created_at))===d);$('todayRuns').innerHTML=rs.length?rs.map(r=>`<div class="rank"><span style="font-size:22px">${TYPES[r.run_type]?.[0]||'🏃'}</span><div class="grow"><b>${crs(r.course)?.name}</b><div class="mute">${TYPES[r.run_type]?.[1]||''} · ${new Date(r.created_at).toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit'})}</div></div><div style="text-align:right"><b>${fmt(r.time_sec)}</b><div class="mute">${fmt(r.avg_pace)}/km</div></div></div>`).join(''):'<div class="empty">아직 달린 기록이 없어요. 코스를 골라 출발해요!</div>';
+ // 7일 그래프
+ const days=[...Array(7)].map((_,i)=>new Date(day.getTime()-(6-i)*864e5));const vals=days.map(x=>{const a=myRuns().filter(r=>iso(new Date(r.created_at))===iso(x));return a.length?Math.min(...a.map(r=>+r.avg_pace)):null});
+ const all=vals.filter(v=>v!==null).concat(ME.pace);const lo=Math.min(...all)-30,hi=Math.max(...all)+30;const y=v=>120-(v-lo)/(hi-lo)*100;const X=i=>20+i*45;
+ const pts=vals.map((v,i)=>v===null?null:[X(i),y(v)]).filter(Boolean);
+ $('weekChart').innerHTML=`<svg viewBox="0 0 310 150" style="width:100%"><line x1="10" x2="300" y1="${y(ME.pace)}" y2="${y(ME.pace)}" stroke="#FF8FAB" stroke-dasharray="4 4"/><text x="300" y="${y(ME.pace)-4}" font-size="10" text-anchor="end" fill="#FF8FAB">목표 ${fmt(ME.pace)}</text>${pts.length>1?`<polyline points="${pts.map(p=>p.join(',')).join(' ')}" fill="none" stroke="#A8CFFF" stroke-width="3" stroke-linejoin="round"/>`:''}${vals.map((v,i)=>`<text x="${X(i)}" y="142" font-size="10" text-anchor="middle" fill="#9A8A96">${days[i].getMonth()+1}/${days[i].getDate()}</text>`+(v===null?'':`<circle cx="${X(i)}" cy="${y(v)}" r="5" fill="#FF8FAB"/><text x="${X(i)}" y="${y(v)-9}" font-size="10" text-anchor="middle" fill="#3A2E39">${fmt(v)}</text>`)).join('')}</svg>${pts.length?'':'<div class="empty">달리면 그래프가 채워져요</div>'}`;
+ const rr=RES.filter(x=>x.run_date===d);const grp={};rr.forEach(x=>{(grp[x.course+'|'+x.slot]=grp[x.course+'|'+x.slot]||[]).push(x.user_id)});
+ $('todayRes').innerHTML=Object.keys(grp).length?Object.entries(grp).sort().map(([k,us])=>{const [c,s]=k.split('|');return `<div class="slot"><b>${s}</b><div class="grow"><b style="font-size:14px">${crs(c)?.name}</b><div class="mute">${us.map(u=>icOf(u)+' '+esc(nickOf(u))).join(', ')}</div></div>${us.includes(UID)?'<span class="chip">내 예약</span>':''}</div>`}).join(''):'<div class="empty">예약이 없어요. + 추가로 함께 뛸 시간을 잡아요.</div>';
+ const {data:mo}=await sb.from('conditions').select('*').eq('user_id',UID).eq('day',d).maybeSingle();renderMood(mo?.mood,mo?.note)}
+let curMood=null;function renderMood(m,note){curMood=m??null;$('moodBtns').innerHTML=MOODS.map((e,i)=>`<button class="${i+1===curMood?'sel':''}" onclick="curMood=${i+1};renderMood(${i+1},$('moodNote').value)">${e}</button>`).join('');$('moodNote').value=note||''}
+async function saveMood(){if(!curMood)return toast('컨디션을 골라 주세요');const {error}=await sb.from('conditions').upsert({user_id:UID,day:iso(day),mood:curMood,note:$('moodNote').value.trim()});error?err(error):toast('저장했어요')}
+
+/* ===== 분석 ===== */
+function renderAnalysis(){const rs=myRuns();$('anRuns').textContent=rs.length;$('anKm').textContent=rs.reduce((a,r)=>a+ +r.km,0).toFixed(1);$('anBest').textContent=rs.length?fmt(Math.min(...rs.map(r=>+r.avg_pace))):'–';const wb=weekBest();$('anWeek').textContent=wb?fmt(wb):'–';
+ const cnt={};rs.forEach(r=>cnt[r.run_type]=(cnt[r.run_type]||0)+1);const ks=Object.keys(cnt).sort((a,b)=>cnt[b]-cnt[a]);$('typeDist').innerHTML=ks.length?ks.map(k=>`<div class="row" style="margin:5px 0"><span style="width:150px">${TYPES[k][0]} ${TYPES[k][1]}</span><div class="bar grow"><i style="width:${cnt[k]/rs.length*100}%"></i></div><b style="width:36px;text-align:right">${cnt[k]}</b></div>`).join('')+`<p class="mute" style="margin:8px 0 0">${TYPES[ks[0]][2]}</p>`:'<div class="empty">완주하면 러닝 유형이 쌓여요</div>';
+ const last=rs.slice(0,10).reverse();$('recentChart').innerHTML=last.length?`<div class="row" style="align-items:flex-end;height:120px;gap:4px">${last.map(r=>{const h=Math.max(10,Math.min(100,ME.pace/r.avg_pace*80));return `<div class="grow" style="text-align:center"><div style="height:${h}px;background:${r.avg_pace>ME.pace*1.07?'#FFC2A8':'#9FE3CB'};border-radius:6px 6px 0 0"></div><small style="font-size:9px;color:var(--mute)">${fmt(r.avg_pace)}</small></div>`}).join('')}</div><p class="mute" style="margin:6px 0 0">막대가 높을수록 빠른 페이스. 주황은 목표보다 7% 이상 느린 날.</p>`:'<div class="empty">아직 기록이 없어요</div>';
+ const t=TIERS[ME.tier],next=TIERS[ME.tier+1];$('tierNow').textContent=t.n;$('tierIc').textContent=t.ic;$('tierSub').textContent=next?`다음 ${next.n}: ${fmt(next.pace)}/km 이내 (주간 최고 ${wb?fmt(wb):'없음'})`:'최고 티어예요!';$('tierBar').style.width=(next&&wb?Math.min(100,next.pace/wb*100):0)+'%';
+ const can=next&&wb&&wb<=next.pace;const b=$('promoteBtn');b.style.display=next?'':'none';b.disabled=!can;b.textContent=can?`⬆ ${next.n}로 승급하기`:'⬆ 기준 기록을 넘으면 승급할 수 있어요';
+ $('tierList').innerHTML=TIERS.map((x,i)=>`<div class="tier ${i===ME.tier?'cur':''}"><span class="ic">${x.ic}</span><div class="grow"><b>${x.n}</b><div class="mute">${i?`${fmt(x.pace)}/km 이내`:'누구나 시작'}</div></div>${i<ME.tier?'<span class="chip">달성</span>':''}</div>`).join('')}
+async function promote(){ME.tier++;const {error}=await sb.from('profiles').update({tier:ME.tier}).eq('id',UID);if(error){ME.tier--;return err(error)}toast(`🎉 ${TIERS[ME.tier].n}로 승급!`);renderAnalysis()}
+
+/* ===== 코스 ===== */
+function bestOf(id){const r=myRuns().filter(r=>r.course===id);return r.length?Math.min(...r.map(r=>r.time_sec)):0}
+function topOf(id){const r=RUNS.filter(r=>r.course===id);return r.length?Math.min(...r.map(r=>r.time_sec)):0}
+function renderCourses(){$('courseList').innerHTML=COURSES.map(c=>{const b=bestOf(c.id),n=new Set(RUNS.filter(r=>r.course===c.id).map(r=>r.user_id)).size;return `<div class="card tap" onclick="openCourse('${c.id}')"><div class="row between"><h3>${c.name}</h3><span class="pill ${c.cls}">${c.diff}</span></div><div class="mute" style="margin-top:4px">${c.km}km · ${n}명이 달렸어요${b?` · 내 최고 ${fmt(b)}`:''}</div></div>`}).join('')}
+function mapSVG(c,id){return `<svg viewBox="0 0 320 220" id="${id}"><defs><pattern id="g${id}" width="20" height="20" patternUnits="userSpaceOnUse"><circle cx="10" cy="10" r="1" fill="#B8D4A8"/></pattern></defs><rect width="320" height="220" fill="url(#g${id})"/>${c.loop?'<path d="'+c.path+'" fill="#A9D8F2" opacity=".8"/>':''}<path d="${c.path}" fill="none" stroke="#fff" stroke-width="10" stroke-linecap="round"/><path d="${c.path}" fill="none" stroke="#F2C185" stroke-width="6" stroke-linecap="round" stroke-dasharray="1 9"/>${c.loop?'<text x="162" y="115" font-size="14" text-anchor="middle" fill="#3F7FAE" font-family="Jua">천호지</text>':''}<text x="${c.loop?48:28}" y="${c.loop?126:196}" font-size="11" fill="#2B3556">🏫 백석대</text><g id="${id}-pacer"></g><g id="${id}-me"></g></svg>`}
+const pathOf=(sid,c)=>document.querySelector(`#${sid} path:nth-of-type(${c.loop?2:1})`);
+function openCourse(id){curCourse=id;const c=crs(id);go('s-detail');$('topTitle').textContent=c.name;$('cDiff').innerHTML=`<span class="pill ${c.cls}">${c.diff}</span>`;$('cRunners').textContent=`${new Set(RUNS.filter(r=>r.course===id).map(r=>r.user_id)).size}명이 달렸어요`;$('cDesc').textContent=c.desc;
+ $('cMap').innerHTML=mapSVG(c,'cm');$('cKm').textContent=c.km;$('cBest').textContent=bestOf(id)?fmt(bestOf(id)):'–';$('cTop').textContent=topOf(id)?fmt(topOf(id)):'–';$('cm-me').innerHTML=charSVG(meColor,'🏃',1);const p=pathOf('cm',c).getPointAtLength(0);$('cm-me').setAttribute('transform',`translate(${p.x-12},${p.y-24})`)}
+
+/* ===== 러닝 ===== */
+let R=null,zoomed=false;
+function startRun(){const c=crs(curCourse),pc=pcr(ME.pacer);go('s-run');$('topTitle').textContent=c.name;$('rPace').textContent=`목표 ${fmt(ME.pace)}/km · ${pc.ic}${pc.name}`;
+ const m=$('rMap');const z=m.querySelector('.zoombtn').outerHTML;m.innerHTML=mapSVG(c,'rm')+z;$('rm-me').innerHTML=charSVG(meColor,'🏃',1);$('rm-pacer').innerHTML=charSVG(pc.color,pc.ic,1);
+ R={c,total:c.km*1000,t:0,me:0,pacer:0,mod:1,fat:0,lastKm:0,lastT:0,slow:0,vib:0,mePace:ME.pace,hist:[]};zoomed=false;setZoom(false);R.iv=setInterval(tick,100)}
+function boost(m){if(!R)return;R.mod=m;toast(m<1?'스퍼트! 🔥':m>1?'잠깐 쉬어가요 🐢':'페이스 유지 😌')}
+function tick(){if(!R)return;const r=R;r.t++;const prog=r.me/r.total;r.fat=prog>0.55?(prog-0.55)*0.5:0;const pace=ME.pace*r.mod*(1+r.fat)*(1+Math.sin(r.t/7)*0.03);r.mePace=pace;r.me+=1000/pace;r.pacer+=1000/ME.pace;r.hist.push(pace);
+ if(Math.floor(r.me/1000)>r.lastKm){r.lastKm++;toast(`${r.lastKm}km 통과! ${fmt(r.t-r.lastT)}`);r.lastT=r.t}
+ if(pace>ME.pace*1.07){r.slow++;if(r.slow===6){const m=$('rMap');m.classList.remove('shake');void m.offsetWidth;m.classList.add('shake');try{navigator.vibrate&&navigator.vibrate([200,100,200])}catch(e){}toast('📳 페이스가 떨어졌어요! 조금만 더 힘내요');r.vib++}}else r.slow=0;
+ draw();if(r.me>=r.total)finishRun()}
+function draw(){const r=R;$('hTime').textContent=fmt(r.t);$('hDist').textContent=(r.me/1000).toFixed(2);$('hPace').textContent=fmt(r.mePace);const gap=r.me-r.pacer;
+ if(Math.abs(gap)<15){$('gapTxt').textContent='페이스메이커와 나란히 🤝';$('gapSub').textContent='딱 좋아요'}else if(gap>0){$('gapTxt').textContent=`${Math.round(gap)}m 앞서는 중 🔥`;$('gapSub').textContent='너무 빠르면 후반에 힘들어요'}else{$('gapTxt').textContent=`${Math.round(-gap)}m 뒤처짐 💨`;$('gapSub').textContent='페이스메이커를 따라가요'}
+ const ratio=r.mePace/ME.pace;const b=ratio>1.1?['습습 후후 · 여유 있어요','😊']:ratio>0.95?['습습 후후 · 안정적이에요','😮‍💨']:ratio>0.88?['습후 습후 · 호흡이 빨라져요','😤']:['하 하 하 · 숨이 차요! 2:1 호흡으로','🥵'];$('breathTxt').textContent=b[0];$('breathIc').textContent=b[1];
+ document.querySelectorAll('.breath i').forEach(i=>i.style.animationDuration=(0.5+ratio*0.7)+'s');place('rm-me',r.me);place('rm-pacer',r.pacer);if(zoomed)setZoom(true)}
+function pt(dist){const p=pathOf('rm',R.c);const L=p.getTotalLength();const per=R.total/R.c.laps;let f=(Math.min(dist,R.total)%per)/per;if(dist>=R.total)f=1;return p.getPointAtLength(f*L)}
+function place(id,d){const p=pt(d);$(id).setAttribute('transform',`translate(${p.x-12},${p.y-24})`)}
+function setZoom(z){zoomed=z;const svg=$('rm');if(!svg)return;$('zIn').style.background=z?'#FFE08A':'#fff';$('zOut').style.background=z?'#fff':'#FFE08A';if(z&&R){const p=pt(R.me),w=120,h=82;svg.setAttribute('viewBox',`${Math.max(0,Math.min(320-w,p.x-w/2))} ${Math.max(0,Math.min(220-h,p.y-h/2))} ${w} ${h}`)}else svg.setAttribute('viewBox','0 0 320 220')}
+function stopRun(){clearInterval(R.iv);R=null;toast('달리기를 중단했어요');go('s-detail',false)}
+async function finishRun(){clearInterval(R.iv);const r=R;R=null;const avg=r.t/(r.total/1000);const q=4,seg=Math.floor(r.hist.length/q),qs=[];for(let i=0;i<q;i++){const a=r.hist.slice(i*seg,(i+1)*seg);qs.push(a.reduce((x,y)=>x+y,0)/a.length)}
+ const mean=qs.reduce((a,b)=>a+b)/q,sd=Math.sqrt(qs.reduce((a,b)=>a+(b-mean)**2,0)/q);let type;
+ if(avg>ME.pace*1.15)type='walk';else if(sd/mean<0.025&&Math.abs(avg-ME.pace)/ME.pace<0.03)type='glue';else if(qs[0]<qs[3]*0.9)type='fire';else if(qs[3]<qs[0]*0.92)type='late';else if(sd/mean>0.08)type='coaster';else type='metro';
+ const {data,error}=await sb.from('runs').insert({user_id:UID,course:r.c.id,km:r.c.km,time_sec:r.t,avg_pace:+avg.toFixed(1),run_type:type,vib:r.vib}).select().single();if(error)err(error);else RUNS.unshift(data);
+ const T=TYPES[type];$('resIc').textContent=T[0];$('resType').textContent=T[1];$('resDesc').textContent=T[2];$('resTime').textContent=fmt(r.t);$('resPace').textContent=fmt(avg)+'/km';$('resRank').textContent=(boardFor(r.c.id).findIndex(x=>x.user_id===UID)+1||'–')+'위';
+ $('splits').innerHTML=qs.map((p,i)=>`<div class="row" style="margin:4px 0"><span style="width:52px" class="mute">${['초반','전반','후반','막판'][i]}</span><div class="bar grow"><i style="width:${Math.min(100,ME.pace/p*85)}%;background:${p>ME.pace*1.07?'#FFC2A8':'#9FE3CB'}"></i></div><span style="width:48px;text-align:right">${fmt(p)}</span></div>`).join('');
+ const pc=pcr(ME.pacer);$('resPacer').innerHTML=`<div class="row"><span style="font-size:32px">${pc.ic}</span><div><b>${pc.name}의 한마디</b><div class="mute">${r.vib?`진동 알림이 ${r.vib}번 울렸어요. 다음엔 초반을 아껴볼까요?`:'한 번도 페이스가 안 떨어졌어요. 최고!'}</div></div></div>`;go('s-result')}
+
+/* ===== 랭킹 ===== */
+function boardFor(id){const best={};RUNS.filter(r=>r.course===id).forEach(r=>{if(!best[r.user_id]||r.time_sec<best[r.user_id].time_sec)best[r.user_id]=r});return Object.values(best).sort((a,b)=>a.time_sec-b.time_sec)}
+function openRank(id){curCourse=id||curCourse;go('s-rank');$('rankTabs').innerHTML=COURSES.map(c=>`<button class="${c.id===curCourse?'cur':''}" onclick="openRank('${c.id}')">${c.name.replace('천호지 ','')}</button>`).join('');
+ const b=boardFor(curCourse);$('rankList').innerHTML=b.length?b.slice(0,30).map((x,i)=>`<div class="rank ${x.user_id===UID?'me':''}"><span class="n">${['🥇','🥈','🥉'][i]||i+1}</span><span class="avatar s">${icOf(x.user_id)}</span><span class="grow">${esc(nickOf(x.user_id))}${x.user_id===UID?' (나)':''} <span class="mute">${TYPES[x.run_type]?.[0]||''}</span></span><b>${fmt(x.time_sec)}</b></div>`).join(''):'<div class="empty">아직 기록이 없어요. 첫 주자가 되어보세요!</div>';
+ const wk=Date.now()-7*864e5,n=myRuns().filter(r=>r.course==='ch1'&&new Date(r.created_at)>wk).length;$('chalBar').style.width=Math.min(100,n/3*100)+'%';$('chalTxt').textContent=n>=3?'🏅 배지 획득! 이번 주 천호지 3회 완주':`${n}/3회 완주`}
+
+/* ===== 커뮤니티 ===== */
+function commTab(t){$('comm-chat').style.display=t==='chat'?'':'none';$('comm-board').style.display=t==='board'?'':'none';$('segChat').classList.toggle('cur',t==='chat');$('segBoard').classList.toggle('cur',t==='board');if(t==='board')renderBoard()}
+function renderComm(){$('roomTabs').innerHTML=ROOMS.map(r=>`<button class="${r.id===curRoom?'cur':''}" onclick="openChat('${r.id}',true)">${r.name}</button>`).join('');$('roomName').textContent=ROOMS.find(r=>r.id===curRoom).name;$('catTabs').innerHTML=['전체',...CATS].map(c=>`<button class="${c===curCat?'cur':''}" onclick="curCat='${c}';renderComm();renderBoard()">${c}</button>`).join('');loadChat();renderOnline()}
+function openChat(id,stay){curRoom=id;if(!stay)go('s-comm');commTab('chat');renderComm();presence?.track({room:curRoom,uid:UID})}
+async function loadChat(){const {data}=await sb.from('messages').select('*').eq('room',curRoom).order('created_at',{ascending:false}).limit(60);MSGS=(data||[]).reverse();renderChat()}
+function renderChat(){const box=$('chatBox');box.innerHTML=MSGS.length?MSGS.map(m=>`<div class="msg ${m.user_id===UID?'mine':''}"><span class="avatar s">${icOf(m.user_id)}</span><div><div class="who">${esc(nickOf(m.user_id))}</div><div class="b">${esc(m.body)}</div></div><time>${new Date(m.created_at).toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit'})}</time></div>`).join(''):'<div class="empty">첫 메시지를 남겨보세요 👋</div>';box.scrollTop=box.scrollHeight}
+async function sendChat(){const t=$('chatIn').value.trim();if(!t)return;$('chatIn').value='';const {error}=await sb.from('messages').insert({room:curRoom,user_id:UID,body:t});if(error)err(error)}
+$('chatIn').addEventListener('keydown',e=>{if(e.key==='Enter')sendChat()});
+function renderOnline(){const here=ONLINE.filter(p=>p.room===curRoom);const ids=[...new Set(here.map(p=>p.uid))];$('online').innerHTML=`<span>🟢 접속 ${ids.length}명</span>`+ids.slice(0,4).map(u=>`<span>${icOf(u)} ${esc(nickOf(u))}${u===UID?' (나)':''}</span>`).join('')}
+function likesOf(pid){return LIKES.filter(l=>l.post_id===pid)}
+async function renderBoard(){const list=POSTS.filter(p=>curCat==='전체'||p.cat===curCat);const {data:cc}=await sb.from('comments').select('post_id');const cn={};(cc||[]).forEach(c=>cn[c.post_id]=(cn[c.post_id]||0)+1);
+ $('posts').innerHTML=list.length?list.map(p=>`<div class="post" onclick="openPost(${p.id})"><div class="row between"><span class="chip">${esc(p.cat)}</span><span class="mute">❤️ ${likesOf(p.id).length} · 💬 ${cn[p.id]||0}</span></div><h3 style="margin-top:4px">${esc(p.title)}</h3><div class="meta">${icOf(p.user_id)} ${esc(nickOf(p.user_id))} · ${ago(p.created_at)}</div></div>`).join(''):'<div class="empty">아직 글이 없어요. 첫 글을 써보세요!</div>'}
+async function submitPost(){const title=$('wTitle').value.trim(),body=$('wBody').value.trim();if(!title||!body)return toast('제목과 내용을 입력해 주세요');const {data,error}=await sb.from('posts').insert({user_id:UID,cat:$('wCat').value,title,body}).select().single();if(error)return err(error);POSTS.unshift(data);$('wTitle').value='';$('wBody').value='';closeModal();toast('글을 올렸어요');commTab('board')}
+async function openPost(id){curPost=id;go('s-post');renderPost();const {data}=await sb.from('comments').select('*').eq('post_id',id).order('created_at');renderComments(data||[])}
+function renderPost(){const p=POSTS.find(x=>x.id===curPost);if(!p)return;const ls=likesOf(p.id),liked=ls.some(l=>l.user_id===UID);$('postView').innerHTML=`<span class="chip">${esc(p.cat)}</span><h2 style="margin:8px 0 4px">${esc(p.title)}</h2><div class="mute">${icOf(p.user_id)} ${esc(nickOf(p.user_id))} · ${ago(p.created_at)}</div><p style="white-space:pre-wrap;margin:12px 0">${esc(p.body)}</p><div class="row"><button class="btn sm ${liked?'pink':'ghost'}" onclick="toggleLike()">❤️ ${ls.length}</button>${p.user_id===UID?'<button class="btn sm ghost" onclick="delPost()">삭제</button>':''}</div>`}
+function renderComments(cs){$('comments').innerHTML=cs.length?cs.map(c=>`<div class="cmt"><b>${icOf(c.user_id)} ${esc(nickOf(c.user_id))}</b> <span class="mute">${ago(c.created_at)}</span><div>${esc(c.body)}</div></div>`).join(''):'<div class="empty">첫 댓글을 남겨보세요</div>'}
+async function toggleLike(){const liked=LIKES.some(l=>l.post_id===curPost&&l.user_id===UID);const r=liked?await sb.from('likes').delete().match({post_id:curPost,user_id:UID}):await sb.from('likes').insert({post_id:curPost,user_id:UID});if(r.error)return err(r.error);LIKES=liked?LIKES.filter(l=>!(l.post_id===curPost&&l.user_id===UID)):[...LIKES,{post_id:curPost,user_id:UID}];renderPost()}
+async function delPost(){if(!confirm('글을 삭제할까요?'))return;const {error}=await sb.from('posts').delete().eq('id',curPost);if(error)return err(error);POSTS=POSTS.filter(p=>p.id!==curPost);toast('삭제했어요');go('s-comm');commTab('board')}
+async function sendComment(){const t=$('cmtIn').value.trim();if(!t)return;$('cmtIn').value='';const {error}=await sb.from('comments').insert({post_id:curPost,user_id:UID,body:t});if(error)return err(error);openPost(curPost)}
+
+/* ===== 예약 ===== */
+function renderSlots(){const c=$('resCourse').value,d=$('resDate').value;$('slots').innerHTML=SLOTS.map(s=>{const us=RES.filter(x=>x.course===c&&x.run_date===d&&x.slot===s).map(x=>x.user_id);const on=us.includes(UID);return `<div class="slot"><b>${s}</b><div class="grow">${us.length?us.slice(0,3).map(u=>`<span class="chip">${icOf(u)} ${esc(nickOf(u))}</span>`).join(' ')+(us.length>3?` 외 ${us.length-3}명`:''):'<span class="mute">아직 예약자가 없어요</span>'}</div><button class="btn sm ${on?'ghost':'mint'}" onclick="toggleRes('${c}','${d}','${s}')">${on?'취소':'예약'}</button></div>`}).join('')}
+async function toggleRes(c,d,s){const ex=RES.find(x=>x.course===c&&x.run_date===d&&x.slot===s&&x.user_id===UID);const r=ex?await sb.from('reservations').delete().eq('id',ex.id):await sb.from('reservations').insert({course:c,run_date:d,slot:s,user_id:UID}).select().single();if(r.error)return err(r.error);RES=ex?RES.filter(x=>x.id!==ex.id):[...RES,r.data];renderSlots();toast(ex?'예약을 취소했어요':'예약했어요! 코스 채팅방에서 만나요');if($('s-today').classList.contains('on'))renderToday()}
+
+/* ===== 내 정보 ===== */
+function renderMe(){$('meAv').textContent=pcr(ME.pacer).ic;$('meHi').textContent=`${ME.nick} · ${TIERS[ME.tier].ic} ${TIERS[ME.tier].n}`;$('meSub').textContent=`${ME.level} · 목표 ${fmt(ME.pace)}/km · 완주 ${myRuns().length}회`;$('setNick').value=ME.nick;$('setLevel').value=ME.level;$('setPm').value=Math.floor(ME.pace/60);$('setPs').value=ME.pace%60;$('setPacer').innerHTML=pacerPicker('sp',ME.pacer)}
+async function saveSettings(){const n=$('setNick').value.trim();if(n)ME.nick=n;ME.level=$('setLevel').value;const m=+$('setPm').value;if(m)ME.pace=m*60+(+$('setPs').value||0);const {error}=await sb.from('profiles').update({nick:ME.nick,level:ME.level,pace:ME.pace,pacer:ME.pacer}).eq('id',UID);if(error)return err(error);PROFILES[UID]=ME;toast('저장했어요');renderMe()}
+
+/* ===== 실시간 ===== */
+function startRealtime(){chan=sb.channel('pacepal',{config:{presence:{key:UID}}});
+ chan.on('postgres_changes',{event:'INSERT',schema:'public',table:'messages'},p=>{if(p.new.room===curRoom){MSGS.push(p.new);renderChat()}})
+ .on('presence',{event:'sync'},()=>{ONLINE=Object.values(chan.presenceState()).flat();renderOnline()})
+ .subscribe(async s=>{if(s==='SUBSCRIBED'){presence=chan;await chan.track({room:curRoom,uid:UID})}})}
+
+/* ===== 시작 ===== */
+(async()=>{if(!CONFIG.url||!CONFIG.key){$('netStatus').textContent='설정 필요';return go('s-setup')}
+ sb=supabase.createClient(CONFIG.url,CONFIG.key);
+ sb.auth.onAuthStateChange(async(ev,session)=>{if(!session){UID=null;$('netStatus').textContent='로그아웃';return go('s-auth')}if(UID===session.user.id)return;UID=session.user.id;
+  const {data}=await sb.from('profiles').select('*').eq('id',UID).maybeSingle();await loadAll();startRealtime();if(data){ME=data;go('s-today')}else go('s-onboard')});
+})();
+</script>
+</body>
+</html>
