@@ -77,7 +77,7 @@ code{background:var(--soft);padding:2px 6px;border-radius:6px;font-size:13px}
 </head>
 <body>
 <div class="app">
-<header class="top"><button class="back" id="topBack" onclick="back()" style="display:none">‹</button><h2 id="topTitle">페이스팔</h2><span class="chip" style="font-size:10px">v2.1</span><span class="status" id="netStatus">연결 중</span></header>
+<header class="top"><button class="back" id="topBack" onclick="back()" style="display:none">‹</button><h2 id="topTitle">페이스팔</h2><span class="chip" style="font-size:10px">v2.2</span><span class="status" id="netStatus">연결 중</span></header>
 
 <section class="screen" id="s-setup"><div class="card"><h3>⚙️ Supabase 설정이 필요해요</h3><p class="mute">index.html의 <code>CONFIG</code>에 URL과 publishable key를 넣고 다시 배포하세요.</p></div></section>
 
@@ -240,13 +240,13 @@ function alertAll(msg,speak){vib([250,100,250]);beep(2);toast(msg);if(speak)say(
 let wake=null;async function keepAwake(on){try{if(on&&'wakeLock'in navigator)wake=await navigator.wakeLock.request('screen');else if(!on&&wake){await wake.release();wake=null}}catch(e){}}
 
 /* ===== 화면 ===== */
-function go(id,push=true){const cur=document.querySelector('.screen.on');if(push&&cur&&cur.id!==id&&!ROOT.includes(id))hist.push(cur.id);if(ROOT.includes(id))hist=[];
+function go(id,push=true){const cur=document.querySelector('.screen.on');if(push&&cur&&cur.id!==id&&!['s-auth','s-onboard','s-setup','s-run'].includes(cur.id))hist.push(cur.id);if(hist.length>30)hist.shift();
  document.querySelectorAll('.screen').forEach(s=>s.classList.toggle('on',s.id===id));let root=id;while(!ROOT.includes(root)&&PARENT[root])root=PARENT[root];
  document.querySelectorAll('.nav button').forEach(b=>b.classList.toggle('cur',b.dataset.n===root));
- $('nav').style.display=ROOT.includes(root)?'flex':'none';$('topBack').style.display=(ROOT.includes(id)||['s-auth','s-onboard','s-setup'].includes(id))?'none':'';
+ $('nav').style.display=ROOT.includes(root)?'flex':'none';$('topBack').style.display=['s-auth','s-onboard','s-setup'].includes(id)?'none':'';
  if(TITLES[id])$('topTitle').textContent=TITLES[id];
  ({'s-today':renderToday,'s-analysis':renderAnalysis,'s-course':renderCourses,'s-comm':renderComm,'s-me':renderMe,'s-record':initRecord})[id]?.();window.scrollTo(0,0)}
-function back(){const cur=document.querySelector('.screen.on').id;if(cur==='s-run'){if(!confirm('달리기를 그만둘까요?'))return;stopRun(true)}if(cur==='s-record'&&REC.on&&!confirm('녹화를 중단할까요?'))return;if(cur==='s-record')stopRecordWatch();go(hist.pop()||PARENT[cur]||'s-today',false)}
+function back(){const cur=document.querySelector('.screen.on').id;if(cur==='s-run'){if(!confirm('달리기를 그만둘까요?'))return;stopRun(true)}if(cur==='s-record'&&REC.on&&!confirm('녹화를 중단할까요?'))return;if(cur==='s-record')stopRecordWatch();let prev=hist.pop();while(prev===cur)prev=hist.pop();go(prev||PARENT[cur]||'s-today',false)}
 function openModal(id){if(id==='m-res'){$('resCourse').innerHTML=COURSES.map(c=>`<option value="${c.id}">${c.name}</option>`).join('');$('resCourse').value=curCourse;$('resDate').value=iso(day<new Date(new Date().toDateString())?new Date():day);renderSlots()}
  if(id==='m-write'&&!$('wCat').options.length)$('wCat').innerHTML=CATS.map(c=>`<option>${c}</option>`).join('');$(id).classList.add('on')}
 function closeModal(){document.querySelectorAll('.modal').forEach(m=>m.classList.remove('on'))}
