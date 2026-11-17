@@ -19,7 +19,7 @@
 *{box-sizing:border-box}html,body{height:100%;margin:0;overflow:hidden}
 body{background:var(--bg);color:var(--ink);font-family:"Noto Sans KR",system-ui,sans-serif;font-size:15px;line-height:1.5}
 h1,h2,h3{font-family:"Jua","Noto Sans KR",sans-serif;font-weight:400;margin:0}h1{font-size:28px}h2{font-size:21px}h3{font-size:17px}
-.app{max-width:440px;margin:0 auto;height:100%;height:100dvh;display:flex;flex-direction:column;background:var(--bg)}
+.app{max-width:440px;margin:0 auto;height:100%;height:100dvh;display:flex;flex-direction:column;background:var(--bg);position:relative}
 #main{flex:1;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch}
 .top{flex:none;background:var(--bg);padding:calc(10px + env(safe-area-inset-top,0px)) 16px 8px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:10px;min-height:52px}
 .top h2{flex:1;font-size:21px}.top .back{border:0;background:var(--paper);border-radius:12px;width:38px;height:38px;font:700 20px "Noto Sans KR";color:var(--ink);cursor:pointer;box-shadow:0 2px 0 var(--line);flex:none}
@@ -78,7 +78,7 @@ code{background:var(--soft);padding:2px 6px;border-radius:6px;font-size:13px}
 </head>
 <body>
 <div class="app">
-<header class="top"><button class="back" id="topBack" onclick="back()" style="display:none">‹</button><h2 id="topTitle">페이스팔</h2><span class="chip" style="font-size:10px">v2.4</span><span class="status" id="netStatus">연결 중</span></header>
+<header class="top"><button class="back" id="topBack" onclick="back()" style="display:none">‹</button><h2 id="topTitle">페이스팔</h2><span class="chip" style="font-size:10px">v2.5</span><span class="status" id="netStatus">연결 중</span></header>
 <main id="main">
 
 <section class="screen" id="s-setup"><div class="card"><h3>⚙️ Supabase 설정이 필요해요</h3><p class="mute">index.html의 <code>CONFIG</code>에 URL과 publishable key를 넣고 다시 배포하세요.</p></div></section>
@@ -192,6 +192,9 @@ code{background:var(--soft);padding:2px 6px;border-radius:6px;font-size:13px}
 <div class="toast" id="toast"></div>
 
 <script>
+/* ===== 화면 높이 맞추기 (폰 브라우저 툴바 대응) ===== */
+function fitApp(){const h=(window.visualViewport&&window.visualViewport.height)||window.innerHeight;document.querySelector('.app').style.height=h+'px';window.scrollTo(0,0)}
+fitApp();window.addEventListener('resize',fitApp);window.addEventListener('orientationchange',()=>setTimeout(fitApp,300));if(window.visualViewport)window.visualViewport.addEventListener('resize',fitApp);
 /* ===== 설정 ===== */
 const CONFIG={url:'https://xjleygzbutfgpwsvcexl.supabase.co',key:'sb_publishable_1Kehy6yDK0-Z6mkVauW1oQ_dSGMSiIu'};
 
