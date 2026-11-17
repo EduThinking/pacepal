@@ -39,6 +39,8 @@ label{display:block;font-size:13px;color:var(--mute);margin:10px 0 4px}
 .opt{display:block;width:100%;text-align:left;background:var(--soft);border:2px solid var(--line);border-radius:16px;padding:12px 14px;margin:6px 0;font:15px "Noto Sans KR",sans-serif;color:var(--ink);cursor:pointer}.opt.sel{border-color:var(--pink);background:#FFE6EC}
 .nav{flex:none;display:flex;justify-content:center;z-index:900}
 .nav .bar{width:100%;background:var(--paper);border-top:1px solid var(--line);display:flex;padding:6px 2px calc(8px + env(safe-area-inset-bottom,0px))}
+body.inapp .nav .bar{padding-bottom:calc(64px + env(safe-area-inset-bottom,0px))}
+.inappbar{display:none;background:#FFF1C7;color:#7A5600;font-size:12px;padding:6px 14px;text-align:center}body.inapp .inappbar{display:block}
 .nav button{flex:1;min-width:0;border:0;background:none;font:11px "Noto Sans KR";color:var(--mute);cursor:pointer;padding:4px 0;border-radius:12px;display:flex;flex-direction:column;align-items:center;gap:2px;white-space:nowrap}.nav button span{font-size:21px;line-height:1}.nav button.cur{color:var(--pink);font-weight:700}
 .seg{display:flex;background:var(--paper);border-radius:999px;padding:4px;margin-bottom:12px}.seg button{flex:1;border:0;border-radius:999px;padding:9px;font:600 14px "Noto Sans KR";color:var(--mute);background:none;cursor:pointer}.seg button.cur{background:var(--pink);color:#fff}
 .tabs{display:flex;gap:6px;margin-bottom:10px;overflow-x:auto}.tabs button{flex:none;border:0;border-radius:999px;padding:7px 12px;background:var(--paper);font:13px "Noto Sans KR";color:var(--mute);cursor:pointer}.tabs button.cur{background:var(--ink);color:#fff}
@@ -78,8 +80,9 @@ code{background:var(--soft);padding:2px 6px;border-radius:6px;font-size:13px}
 </head>
 <body>
 <div class="app">
-<header class="top"><button class="back" id="topBack" onclick="back()" style="display:none">‹</button><h2 id="topTitle">페이스팔</h2><span class="chip" style="font-size:10px">v2.5</span><span class="status" id="netStatus">연결 중</span></header>
+<header class="top"><button class="back" id="topBack" onclick="back()" style="display:none">‹</button><h2 id="topTitle">페이스팔</h2><span class="chip" style="font-size:10px">v2.6</span><span class="status" id="netStatus">연결 중</span></header>
 <main id="main">
+<div class="inappbar">카카오톡 안에서 열렸어요. 오른쪽 위 ⋮ → <b>다른 브라우저로 열기</b>를 누르면 더 잘 보여요.</div>
 
 <section class="screen" id="s-setup"><div class="card"><h3>⚙️ Supabase 설정이 필요해요</h3><p class="mute">index.html의 <code>CONFIG</code>에 URL과 publishable key를 넣고 다시 배포하세요.</p></div></section>
 
@@ -194,6 +197,7 @@ code{background:var(--soft);padding:2px 6px;border-radius:6px;font-size:13px}
 <script>
 /* ===== 화면 높이 맞추기 (폰 브라우저 툴바 대응) ===== */
 function fitApp(){const h=(window.visualViewport&&window.visualViewport.height)||window.innerHeight;document.querySelector('.app').style.height=h+'px';window.scrollTo(0,0)}
+if(/KAKAOTALK|NAVER\(inapp|Instagram|FBAN|FBAV|Line\//i.test(navigator.userAgent))document.body.classList.add('inapp');
 fitApp();window.addEventListener('resize',fitApp);window.addEventListener('orientationchange',()=>setTimeout(fitApp,300));if(window.visualViewport)window.visualViewport.addEventListener('resize',fitApp);
 /* ===== 설정 ===== */
 const CONFIG={url:'https://xjleygzbutfgpwsvcexl.supabase.co',key:'sb_publishable_1Kehy6yDK0-Z6mkVauW1oQ_dSGMSiIu'};
