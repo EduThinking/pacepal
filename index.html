@@ -16,14 +16,15 @@
 <script>if(typeof supabase==="undefined")document.write('<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"><\/script>')</script>
 <style>
 :root{--bg:#FFF8FA;--paper:#fff;--ink:#3A2E39;--mute:#9A8A96;--pink:#FF8FAB;--peach:#FFC2A8;--lemon:#FFE08A;--mint:#9FE3CB;--blue:#A8CFFF;--line:#F3E3E8;--soft:#FFF1F4;--bubble:#F6EEF1;--navh:64px}
-*{box-sizing:border-box}html,body{height:100%;margin:0}
-body{background:var(--bg);color:var(--ink);font-family:"Noto Sans KR",system-ui,sans-serif;font-size:15px;line-height:1.5;padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}html,body{height:100%;margin:0;overflow:hidden}
+body{background:var(--bg);color:var(--ink);font-family:"Noto Sans KR",system-ui,sans-serif;font-size:15px;line-height:1.5}
 h1,h2,h3{font-family:"Jua","Noto Sans KR",sans-serif;font-weight:400;margin:0}h1{font-size:28px}h2{font-size:21px}h3{font-size:17px}
-.app{max-width:440px;margin:0 auto;min-height:100%;display:flex;flex-direction:column}
-.top{position:sticky;top:0;z-index:900;background:var(--bg);padding:10px 16px 8px;display:flex;align-items:center;gap:10px;min-height:52px}
+.app{max-width:440px;margin:0 auto;height:100%;height:100dvh;display:flex;flex-direction:column;background:var(--bg)}
+#main{flex:1;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch}
+.top{flex:none;background:var(--bg);padding:calc(10px + env(safe-area-inset-top,0px)) 16px 8px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:10px;min-height:52px}
 .top h2{flex:1;font-size:21px}.top .back{border:0;background:var(--paper);border-radius:12px;width:38px;height:38px;font:700 20px "Noto Sans KR";color:var(--ink);cursor:pointer;box-shadow:0 2px 0 var(--line);flex:none}
 .status{font-size:11px;padding:3px 9px;border-radius:999px;background:var(--paper);color:var(--mute)}.status.on{background:#DDF6EC;color:#1E8A63}
-.screen{display:none;flex:1;padding:6px 16px calc(var(--navh) + 30px)}.screen.on{display:block}
+.screen{display:none;padding:10px 16px 28px}.screen.on{display:block}
 .sec{margin:18px 0 8px;display:flex;align-items:center;justify-content:space-between}.sec p{margin:2px 0 0;font-size:12px;color:var(--mute)}
 .card{background:var(--paper);border-radius:20px;padding:16px;margin-bottom:12px;box-shadow:0 4px 0 rgba(58,46,57,.05)}.card.tap{cursor:pointer}
 .btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;border:0;border-radius:16px;padding:13px 18px;font:500 15px "Noto Sans KR",sans-serif;color:var(--ink);background:var(--lemon);cursor:pointer;box-shadow:0 4px 0 #E4C560;transition:transform .08s;line-height:1.3}
@@ -36,9 +37,9 @@ label{display:block;font-size:13px;color:var(--mute);margin:10px 0 4px}
 .pill{display:inline-block;border-radius:999px;padding:3px 10px;font-size:12px;font-weight:700}.p-쉬움{background:#DDF6EC;color:#1E8A63}.p-보통{background:#FFF1C7;color:#9A6A00}.p-어려움{background:#FFDFD9;color:#C23E2B}
 .mute{color:var(--mute);font-size:13px}.chip{font-size:12px;background:var(--soft);border-radius:999px;padding:3px 9px;color:var(--mute);white-space:nowrap}
 .opt{display:block;width:100%;text-align:left;background:var(--soft);border:2px solid var(--line);border-radius:16px;padding:12px 14px;margin:6px 0;font:15px "Noto Sans KR",sans-serif;color:var(--ink);cursor:pointer}.opt.sel{border-color:var(--pink);background:#FFE6EC}
-.nav{position:fixed;left:0;right:0;bottom:0;display:flex;justify-content:center;z-index:900}
-.nav .bar{width:100%;max-width:440px;background:var(--paper);border-top:1px solid var(--line);display:flex;padding:6px 2px calc(8px + env(safe-area-inset-bottom,0px))}
-.nav button{flex:1;border:0;background:none;font:11px "Noto Sans KR";color:var(--mute);cursor:pointer;padding:4px 0;border-radius:12px;display:flex;flex-direction:column;align-items:center;gap:2px}.nav button span{font-size:21px;line-height:1}.nav button.cur{color:var(--pink);font-weight:700}
+.nav{flex:none;display:flex;justify-content:center;z-index:900}
+.nav .bar{width:100%;background:var(--paper);border-top:1px solid var(--line);display:flex;padding:6px 2px calc(8px + env(safe-area-inset-bottom,0px))}
+.nav button{flex:1;min-width:0;border:0;background:none;font:11px "Noto Sans KR";color:var(--mute);cursor:pointer;padding:4px 0;border-radius:12px;display:flex;flex-direction:column;align-items:center;gap:2px;white-space:nowrap}.nav button span{font-size:21px;line-height:1}.nav button.cur{color:var(--pink);font-weight:700}
 .seg{display:flex;background:var(--paper);border-radius:999px;padding:4px;margin-bottom:12px}.seg button{flex:1;border:0;border-radius:999px;padding:9px;font:600 14px "Noto Sans KR";color:var(--mute);background:none;cursor:pointer}.seg button.cur{background:var(--pink);color:#fff}
 .tabs{display:flex;gap:6px;margin-bottom:10px;overflow-x:auto}.tabs button{flex:none;border:0;border-radius:999px;padding:7px 12px;background:var(--paper);font:13px "Noto Sans KR";color:var(--mute);cursor:pointer}.tabs button.cur{background:var(--ink);color:#fff}
 .steps{display:flex;gap:6px;margin:4px 0 14px}.steps span{flex:1;text-align:center;font-size:12px;color:var(--mute);padding:6px;border-radius:999px;background:var(--paper)}.steps span.cur{background:var(--pink);color:#fff;font-weight:700}
@@ -51,7 +52,7 @@ label{display:block;font-size:13px;color:var(--mute);margin:10px 0 4px}
 .zoombtn{position:absolute;right:10px;top:10px;display:flex;gap:6px;z-index:500}.zoombtn button{border:0;border-radius:12px;background:#fff;padding:6px 10px;font:700 13px "Noto Sans KR";cursor:pointer;color:#2B3556;box-shadow:0 3px 0 var(--line)}.zoombtn button.cur{background:var(--lemon)}
 .shake{animation:shake .4s 3}@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
 .breath{display:flex;gap:4px;align-items:flex-end;height:30px}.breath i{width:6px;background:var(--blue);border-radius:4px;animation:br 1.1s infinite ease-in-out}@keyframes br{0%,100%{height:6px}50%{height:30px}}
-.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(var(--navh) + 36px);background:var(--ink);color:#fff;padding:10px 16px;border-radius:999px;font-size:14px;opacity:0;transition:opacity .2s;pointer-events:none;z-index:2000;max-width:90%}.toast.show{opacity:1}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:90px;background:var(--ink);color:#fff;padding:10px 16px;border-radius:999px;font-size:14px;opacity:0;transition:opacity .2s;pointer-events:none;z-index:2000;max-width:90%}.toast.show{opacity:1}
 .rank{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px dashed var(--line)}.rank:last-child{border:0}.rank .n{width:26px;font-family:"Jua";font-size:18px;text-align:center}.me{background:#FFF3C4;margin:0 -8px;padding:9px 8px;border-radius:12px}
 .avatar{width:38px;height:38px;border-radius:50%;background:var(--soft);display:grid;place-items:center;font-size:20px;flex:none}.avatar.s{width:30px;height:30px;font-size:15px}
 .tier{display:flex;align-items:center;gap:12px;padding:10px;border-radius:16px;margin:6px 0;background:var(--soft)}.tier.cur{background:#FFF3C4;outline:2px solid var(--lemon)}.tier .ic{font-size:26px}
@@ -77,7 +78,8 @@ code{background:var(--soft);padding:2px 6px;border-radius:6px;font-size:13px}
 </head>
 <body>
 <div class="app">
-<header class="top"><button class="back" id="topBack" onclick="back()" style="display:none">‹</button><h2 id="topTitle">페이스팔</h2><span class="chip" style="font-size:10px">v2.2</span><span class="status" id="netStatus">연결 중</span></header>
+<header class="top"><button class="back" id="topBack" onclick="back()" style="display:none">‹</button><h2 id="topTitle">페이스팔</h2><span class="chip" style="font-size:10px">v2.4</span><span class="status" id="netStatus">연결 중</span></header>
+<main id="main">
 
 <section class="screen" id="s-setup"><div class="card"><h3>⚙️ Supabase 설정이 필요해요</h3><p class="mute">index.html의 <code>CONFIG</code>에 URL과 publishable key를 넣고 다시 배포하세요.</p></div></section>
 
@@ -123,7 +125,7 @@ code{background:var(--soft);padding:2px 6px;border-radius:6px;font-size:13px}
   <div class="row between" style="margin-bottom:8px"><span class="mute">학교 앞 코스를 고르세요</span><div class="row" style="gap:6px"><button class="btn add" onclick="go('s-record')">⏺ 코스 녹화</button><button class="btn add" onclick="$('gpxFile').click()">⬆ GPX</button></div></div>
   <input type="file" id="gpxFile" accept=".gpx" style="display:none" onchange="importGPX(this.files[0])">
   <div id="courseList"></div>
-  <div class="warn">기본 코스 선은 지도 기준 추정 경로예요. 실제 길 그대로 쓰려면 한 번 걸으면서 <b>코스 녹화</b>를 해 주세요.</div>
+  <div class="card" style="text-align:center"><b>➕ 코스 추가하기</b><p class="mute" style="margin:4px 0 10px">정문 왕복, 태조산 오르막처럼 길이 복잡한 코스는 한 번 걸으면서 녹화하면 실제 길 그대로 저장돼요.</p><div class="row"><button class="btn mint grow" onclick="go('s-record')">⏺ 코스 녹화</button><button class="btn ghost grow" onclick="$('gpxFile').click()">⬆ GPX 올리기</button></div></div><p class="mute">천호지 둘레길은 지도에서 호수 윤곽을 따라 그린 경로예요(오차 10~20m). 녹화한 코스가 있으면 그걸 쓰는 게 더 정확해요.</p>
 </section>
 <section class="screen" id="s-detail">
   <div class="row between"><span id="cDiff"></span><span class="chip" id="cRunners"></span></div><p class="mute" id="cDesc" style="margin:6px 0 10px"></p>
@@ -179,11 +181,11 @@ code{background:var(--soft);padding:2px 6px;border-radius:6px;font-size:13px}
   <div class="card"><b>📲 홈 화면에 추가</b><p class="mute" style="margin:4px 0 0">아이폰: 공유 → 홈 화면에 추가 / 안드로이드: 메뉴 → 홈 화면에 추가. 앱처럼 전체 화면으로 열려요.</p></div>
   <button class="btn ghost wide" onclick="logout()">로그아웃</button>
 </section>
-</div>
-
+</main>
 <nav class="nav" id="nav" style="display:none"><div class="bar">
   <button onclick="go('s-today')" data-n="s-today"><span>📅</span>오늘</button><button onclick="go('s-analysis')" data-n="s-analysis"><span>📊</span>분석</button><button onclick="go('s-course')" data-n="s-course"><span>🏃</span>코스</button><button onclick="openRank()" data-n="s-rank"><span>🏆</span>랭킹</button><button onclick="go('s-comm')" data-n="s-comm"><span>💬</span>커뮤니티</button><button onclick="go('s-me')" data-n="s-me"><span>🙂</span>내 정보</button>
 </div></nav>
+</div>
 
 <div class="modal" id="m-res"><div class="sheet"><div class="hd"><h2>함께 뛰기 예약</h2><button class="x" onclick="closeModal()">✕</button></div><label>코스</label><select id="resCourse" onchange="renderSlots()"></select><label>날짜</label><input id="resDate" type="date" onchange="renderSlots()"><div id="slots" style="margin-top:8px"></div></div></div>
 <div class="modal" id="m-write"><div class="sheet"><div class="hd"><h2>새 글</h2><button class="x" onclick="closeModal()">✕</button></div><label>카테고리</label><select id="wCat"></select><label>제목</label><input id="wTitle" maxlength="60"><label>내용</label><textarea id="wBody" rows="6" maxlength="2000"></textarea><button class="btn pink wide" style="margin-top:12px" onclick="submitPost()">올리기</button></div></div>
@@ -203,13 +205,10 @@ function line(a,b,n=20){return [...Array(n+1)].map((_,i)=>[a[0]+(b[0]-a[0])*i/n,
 
 /* ===== 정적 데이터 ===== */
 const LAKE=[36.8335,127.1705],BU=[36.8395,127.1839],TAEJO=[36.8223,127.1903];
-const lakeLoop=ellipse(LAKE,400,330,90,0.3);
-const gateLine=line(BU,[36.8352,127.1740],25);
+const lakeLoop=[[36.834371,127.1727],[36.833723,127.172781],[36.83307,127.172648],[36.832421,127.172407],[36.831785,127.171998],[36.831252,127.171528],[36.830867,127.170908],[36.83066,127.170161],[36.830631,127.169485],[36.830813,127.16881],[36.831138,127.168135],[36.831607,127.16757],[36.832147,127.167164],[36.832723,127.166936],[36.833301,127.166866],[36.83388,127.166953],[36.834351,127.167174],[36.834807,127.167553],[36.835227,127.168047],[36.835628,127.168637],[36.836022,127.169321],[36.836425,127.170049],[36.836752,127.17077],[36.836921,127.171507],[36.836879,127.172243],[36.836528,127.172627],[36.835882,127.17271],[36.835179,127.172712],[36.834371,127.1727]];
 const DEFAULT_COURSES=[
- {id:'ch1',name:'천호지 한 바퀴',km:2.3,diff:'쉬움',descr:'백석대 앞 천호지 둘레길 한 바퀴. 평지라 처음 뛰기에 좋아요.',coords:lakeLoop,loop:true,laps:1},
- {id:'ch2',name:'천호지 두 바퀴',km:4.6,diff:'보통',descr:'둘레길 두 바퀴. 5km 도전 전 연습 코스.',coords:lakeLoop,loop:true,laps:2},
- {id:'gate',name:'정문에서 천호지 왕복',km:2.4,diff:'보통',descr:'백석대 정문에서 천호지 입구까지 갔다가 돌아와요.',coords:[...gateLine,...gateLine.slice().reverse()],loop:false,laps:1},
- {id:'taejo',name:'태조산 공원 오르막',km:3.0,diff:'어려움',descr:'백석대에서 태조산 공원 입구까지 오르막 코스.',coords:line(BU,TAEJO,30),loop:false,laps:1}];
+ {id:'ch1',name:'천호지 한 바퀴',km:1.9,diff:'쉬움',descr:'천호지 둘레길(호숫가 산책로) 한 바퀴. 평지라 처음 뛰기에 좋아요.',coords:lakeLoop,loop:true,laps:1},
+ {id:'ch2',name:'천호지 두 바퀴',km:3.9,diff:'보통',descr:'둘레길 두 바퀴. 5km 도전 전 연습 코스.',coords:lakeLoop,loop:true,laps:2}];
 const PACERS=[{id:'rabbit',name:'토토',ic:'🐰',tip:'또박또박 페이스 유지'},{id:'turtle',name:'꾸북',ic:'🐢',tip:'천천히 함께'},{id:'cheetah',name:'치치',ic:'🐆',tip:'스퍼트 좋아함'}];
 const TIERS=[{n:'달린이',ic:'🐣',pace:999},{n:'달리기 새싹',ic:'🌱',pace:450},{n:'달리기 중수',ic:'🏃',pace:390},{n:'달리기 고수',ic:'⚡',pace:330},{n:'달인',ic:'👑',pace:290}];
 const TYPES={fire:['🔥','초반 불꽃형','초반에는 쌩쌩 달리다 후반에 페이스가 뚝. 다음엔 시작을 10초만 천천히!'],late:['🚀','뒷심 폭발형','뒤로 갈수록 빨라지는 타입. 초반을 조금 더 밀어도 괜찮아요.'],metro:['🎵','메트로놈형','구간 편차가 아주 적어요. 페이스메이커가 질투할 정도.'],coaster:['🎢','롤러코스터형','빨라졌다 느려졌다 반복. 호흡 리듬을 먼저 잡아봐요.'],glue:['🧲','페메 껌딱지형','끝까지 페이스메이커 옆에 딱 붙어 달렸어요. 목표 페이스를 올려볼 때!'],walk:['🌿','느긋한 산책형','목표보다 여유롭게 달렸어요. 즐기는 게 먼저니까 괜찮아요.']};
@@ -245,7 +244,7 @@ function go(id,push=true){const cur=document.querySelector('.screen.on');if(push
  document.querySelectorAll('.nav button').forEach(b=>b.classList.toggle('cur',b.dataset.n===root));
  $('nav').style.display=ROOT.includes(root)?'flex':'none';$('topBack').style.display=['s-auth','s-onboard','s-setup'].includes(id)?'none':'';
  if(TITLES[id])$('topTitle').textContent=TITLES[id];
- ({'s-today':renderToday,'s-analysis':renderAnalysis,'s-course':renderCourses,'s-comm':renderComm,'s-me':renderMe,'s-record':initRecord})[id]?.();window.scrollTo(0,0)}
+ ({'s-today':renderToday,'s-analysis':renderAnalysis,'s-course':renderCourses,'s-comm':renderComm,'s-me':renderMe,'s-record':initRecord})[id]?.();$('main').scrollTo(0,0)}
 function back(){const cur=document.querySelector('.screen.on').id;if(cur==='s-run'){if(!confirm('달리기를 그만둘까요?'))return;stopRun(true)}if(cur==='s-record'&&REC.on&&!confirm('녹화를 중단할까요?'))return;if(cur==='s-record')stopRecordWatch();let prev=hist.pop();while(prev===cur)prev=hist.pop();go(prev||PARENT[cur]||'s-today',false)}
 function openModal(id){if(id==='m-res'){$('resCourse').innerHTML=COURSES.map(c=>`<option value="${c.id}">${c.name}</option>`).join('');$('resCourse').value=curCourse;$('resDate').value=iso(day<new Date(new Date().toDateString())?new Date():day);renderSlots()}
  if(id==='m-write'&&!$('wCat').options.length)$('wCat').innerHTML=CATS.map(c=>`<option>${c}</option>`).join('');$(id).classList.add('on')}
@@ -275,7 +274,7 @@ function obStep(n){if(n===2&&!$('nick').value.trim())return toast('닉네임을 
   $('levelTitle').textContent=`당신은 ${obLevel[0]}!`;$('levelDesc').textContent=obLevel[1];obPace=obLevel[2][1];
   $('paceOpts').innerHTML=obLevel[2].map((p,i)=>`<button class="opt sel-p ${i===1?'sel':''}" data-p="${p}" style="width:auto;flex:1;text-align:center">${fmt(p)}<br><small class="mute">${['빠르게','추천','편하게'][i]}</small></button>`).join('');
   document.querySelectorAll('.sel-p').forEach(b=>b.onclick=()=>{document.querySelectorAll('.sel-p').forEach(x=>x.classList.remove('sel'));b.classList.add('sel');obPace=+b.dataset.p;$('pm').value='';$('ps').value=''});$('pacerOpts').innerHTML=pacerPicker('pc',obPacer)}
- [1,2,3].forEach(i=>{$('ob'+i).style.display=i===n?'':'none';$('st'+i).classList.toggle('cur',i===n)});window.scrollTo(0,0)}
+ [1,2,3].forEach(i=>{$('ob'+i).style.display=i===n?'':'none';$('st'+i).classList.toggle('cur',i===n)});$('main').scrollTo(0,0)}
 function pacerPicker(cls,sel){return PACERS.map(p=>`<button class="opt ${cls} ${p.id===sel?'sel':''}" data-id="${p.id}" style="text-align:center" onclick="pickPacer(this,'${cls}')"><span style="font-size:26px">${p.ic}</span><br>${p.name}<br><small class="mute">${p.tip}</small></button>`).join('')}
 function pickPacer(b,cls){document.querySelectorAll('.'+cls).forEach(x=>x.classList.remove('sel'));b.classList.add('sel');if(cls==='pc')obPacer=b.dataset.id;else ME.pacer=b.dataset.id}
 async function finishOnboard(){const m=+$('pm').value,s=+$('ps').value||0;if(m)obPace=m*60+s;const row={id:UID,nick:$('nick').value.trim(),level:obLevel[0],pace:obPace,pacer:obPacer,tier:0};
