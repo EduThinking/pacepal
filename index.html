@@ -80,7 +80,7 @@ code{background:var(--soft);padding:2px 6px;border-radius:6px;font-size:13px}
 </head>
 <body>
 <div class="app">
-<header class="top"><button class="back" id="topBack" onclick="back()" style="display:none">‹</button><h2 id="topTitle">페이스팔</h2><span class="chip" style="font-size:10px">v2.6</span><span class="status" id="netStatus">연결 중</span></header>
+<header class="top"><button class="back" id="topBack" onclick="back()" style="display:none">‹</button><h2 id="topTitle">페이스팔</h2><span class="chip" style="font-size:10px">v2.9</span><span class="status" id="netStatus">연결 중</span></header>
 <main id="main">
 <div class="inappbar">카카오톡 안에서 열렸어요. 오른쪽 위 ⋮ → <b>다른 브라우저로 열기</b>를 누르면 더 잘 보여요.</div>
 
@@ -142,7 +142,7 @@ code{background:var(--soft);padding:2px 6px;border-radius:6px;font-size:13px}
   <div class="map" id="recMap"></div>
   <div class="hud"><div><b id="recDist">0.00</b><small>km</small></div><div><b id="recTime">0:00</b><small>시간</small></div><div><b id="recPts">0</b><small>좌표</small></div><div><b id="recAcc">–</b><small>정확도 m</small></div></div>
   <div class="card"><p class="mute" style="margin:0 0 8px">코스 시작점에서 "녹화 시작"을 누르고 그대로 걷거나 뛰세요. 끝나면 "녹화 끝" → 이름을 붙여 저장해요. 화면은 계속 켜 둬야 해요.</p><div class="row"><button class="btn pink grow" id="recBtn" onclick="toggleRecord()">⏺ 녹화 시작</button><button class="btn ghost" onclick="resetRecord()">초기화</button></div></div>
-  <div class="card" id="recSave" style="display:none"><label>코스 이름</label><input id="recName" placeholder="예) 천호지 한 바퀴 (실측)" maxlength="30"><label>난이도</label><select id="recDiff"><option>쉬움</option><option selected>보통</option><option>어려움</option></select><label>설명</label><input id="recDescr" maxlength="80"><label><input type="checkbox" id="recLoop" checked style="width:auto"> 출발점으로 돌아오는 순환 코스</label><button class="btn mint wide" style="margin-top:10px" onclick="saveRecord()">코스로 저장</button></div>
+  <div class="card" id="recSave" style="display:none"><label>저장 방식</label><select id="recMode" onchange="$('recNewFields').style.display=this.value==='new'?'':'none'"><option value="lake">천호지 한 바퀴·두 바퀴 코스를 이 경로로 교체</option><option value="new">새 코스로 추가</option></select><div id="recNewFields" style="display:none"><label>코스 이름</label><input id="recName" placeholder="예) 천호지 한 바퀴 (실측)" maxlength="30"><label>난이도</label><select id="recDiff"><option>쉬움</option><option selected>보통</option><option>어려움</option></select><label>설명</label><input id="recDescr" maxlength="80"></div><label><input type="checkbox" id="recLoop" checked style="width:auto"> 출발점으로 돌아오는 순환 코스</label><button class="btn mint wide" style="margin-top:10px" onclick="saveRecord()">코스로 저장</button></div>
 </section>
 <section class="screen" id="s-run">
   <div class="row between" style="margin-bottom:6px"><span class="chip" id="rPace"></span><span class="chip" id="rMode"></span><span class="chip" id="rGps">GPS 대기</span></div>
@@ -319,15 +319,16 @@ async function promote(){ME.tier++;const {error}=await sb.from('profiles').updat
 /* ===== 코스 ===== */
 const bestOf=id=>{const r=myRuns().filter(r=>r.course===id);return r.length?Math.min(...r.map(r=>r.time_sec)):0};const topOf=id=>{const r=RUNS.filter(r=>r.course===id);return r.length?Math.min(...r.map(r=>r.time_sec)):0};
 function renderCourses(){$('courseList').innerHTML=COURSES.map(c=>{const b=bestOf(c.id),n=new Set(RUNS.filter(r=>r.course===c.id).map(r=>r.user_id)).size;return `<div class="card tap" onclick="openCourse('${c.id}')"><div class="row between"><h3>${esc(c.name)}</h3><span class="pill p-${c.diff}">${c.diff}</span></div><div class="mute" style="margin-top:4px">${c.km}km · ${c.loop?'순환':'편도'}${c.laps>1?` ${c.laps}바퀴`:''} · ${n}명이 달렸어요${b?` · 내 최고 ${fmt(b)}`:''}${c.created_by?' · 실측':''}</div></div>`}).join('')}
-function openCourse(id){curCourse=id;const c=crs(id);go('s-detail');$('topTitle').textContent=c.name;$('cDiff').innerHTML=`<span class="pill p-${c.diff}">${c.diff}</span>`;$('cRunners').textContent=`${new Set(RUNS.filter(r=>r.course===id).map(r=>r.user_id)).size}명이 달렸어요`;$('cDesc').textContent=c.descr||'';
+function openCourse(id){curCourse=id;const c=crs(id);go('s-detail');$('topTitle').textContent=c.name;$('cDiff').innerHTML=`<span class="pill p-${c.diff}">${c.diff}</span>`;$('cRunners').textContent=`${new Set(RUNS.filter(r=>r.course===id).map(r=>r.user_id)).size}명이 달렸어요`;$('cDesc').textContent=(c.descr||'')+(c.created_by?` · ${nickOf(c.created_by)}님이 실측`:'');
  $('cKm').textContent=c.km;$('cBest').textContent=bestOf(id)?fmt(bestOf(id)):'–';$('cTop').textContent=topOf(id)?fmt(topOf(id)):'–';const b=boardFor(id,'all'),mi=b.findIndex(x=>x.user_id===UID);$('cMyRank').textContent=mi>=0?`${mi+1}/${b.length}`:'–';
- $('cOwner').innerHTML=c.created_by===UID?`<button class="btn sm ghost" onclick="delCourse('${c.id}')">이 코스 삭제</button>`:'';
+ $('cOwner').innerHTML=(['ch1','ch2'].includes(c.id)&&canReplaceLake())?`<button class="btn sm ghost" onclick="go('s-record')">⏺ 이 코스 다시 녹화하기</button>`:c.created_by===UID&&!['ch1','ch2'].includes(c.id)?`<button class="btn sm ghost" onclick="delCourse('${c.id}')">이 코스 삭제</button>`:'';
  const m=mkMap('cMap',c.coords[0]);drawCourse(m,c)}
 async function delCourse(id){if(!confirm('코스를 삭제할까요?'))return;const {error}=await sb.from('courses').delete().eq('id',id);if(error)return err(error);COURSES=COURSES.filter(c=>c.id!==id);toast('삭제했어요');go('s-course')}
 
 /* ===== 코스 녹화 / GPX ===== */
 const REC={on:false,pts:[],t0:0,watch:null,iv:null,dist:0,map:null,line:null,me:null};
-function initRecord(){REC.map=mkMap('recMap',LAKE,15);REC.line=L.polyline([],{color:'#2F7BFF',weight:5}).addTo(REC.map);navigator.geolocation?.getCurrentPosition(p=>{REC.map.setView([p.coords.latitude,p.coords.longitude],17);REC.me=L.marker([p.coords.latitude,p.coords.longitude],{icon:meIcon}).addTo(REC.map);$('recAcc').textContent=Math.round(p.coords.accuracy)},e=>toast('위치 권한을 허용해 주세요'),{enableHighAccuracy:true})}
+function canReplaceLake(){const c=crs('ch1');return !c?.created_by||c.created_by===UID}
+function initRecord(){const adm=canReplaceLake();const sel=$('recMode');sel.querySelector('option[value=lake]').hidden=!adm;sel.value=adm?'lake':'new';$('recNewFields').style.display=adm?'none':'';REC.map=mkMap('recMap',LAKE,15);REC.line=L.polyline([],{color:'#2F7BFF',weight:5}).addTo(REC.map);navigator.geolocation?.getCurrentPosition(p=>{REC.map.setView([p.coords.latitude,p.coords.longitude],17);REC.me=L.marker([p.coords.latitude,p.coords.longitude],{icon:meIcon}).addTo(REC.map);$('recAcc').textContent=Math.round(p.coords.accuracy)},e=>toast('위치 권한을 허용해 주세요'),{enableHighAccuracy:true})}
 function toggleRecord(){if(!REC.on){if(!navigator.geolocation)return toast('이 기기는 GPS를 쓸 수 없어요');REC.on=true;REC.t0=Date.now();$('recBtn').textContent='⏹ 녹화 끝';$('recBtn').classList.replace('pink','mint');keepAwake(true);
   REC.watch=navigator.geolocation.watchPosition(p=>{const {latitude:la,longitude:lo,accuracy:ac}=p.coords;$('recAcc').textContent=Math.round(ac);if(ac>35)return;const pt=[la,lo];const last=REC.pts[REC.pts.length-1];if(last){const d=hav(last,pt);if(d<3)return;REC.dist+=d}REC.pts.push(pt);REC.line.addLatLng(pt);REC.me?REC.me.setLatLng(pt):(REC.me=L.marker(pt,{icon:meIcon}).addTo(REC.map));REC.map.panTo(pt);$('recDist').textContent=(REC.dist/1000).toFixed(2);$('recPts').textContent=REC.pts.length},e=>toast('GPS 오류: '+e.message),{enableHighAccuracy:true,maximumAge:1000,timeout:15000});
   REC.iv=setInterval(()=>$('recTime').textContent=fmt((Date.now()-REC.t0)/1000),1000)}
@@ -335,7 +336,15 @@ function toggleRecord(){if(!REC.on){if(!navigator.geolocation)return toast('이 
 function stopRecordWatch(){REC.on=false;if(REC.watch!=null)navigator.geolocation.clearWatch(REC.watch);clearInterval(REC.iv);REC.watch=null;$('recBtn').textContent='⏺ 녹화 시작';$('recBtn').classList.replace('mint','pink');keepAwake(false)}
 function resetRecord(){stopRecordWatch();REC.pts=[];REC.dist=0;$('recDist').textContent='0.00';$('recPts').textContent='0';$('recTime').textContent='0:00';$('recSave').style.display='none';REC.line?.setLatLngs([])}
 async function saveCourseRow(row){const {error}=await sb.from('courses').insert(row);if(error)return err(error);COURSES.push(row);toast('코스를 저장했어요');go('s-course')}
-async function saveRecord(){const name=$('recName').value.trim();if(!name)return toast('코스 이름을 입력해 주세요');const loop=$('recLoop').checked;const pts=loop?[...REC.pts,REC.pts[0]]:REC.pts;const km=+(cumDist(pts).at(-1)/1000).toFixed(2);
+function smooth(pts){if(pts.length<5)return pts;const out=[pts[0]];for(let i=1;i<pts.length-1;i++){const a=pts[i-1],b=pts[i],c=pts[i+1];if(hav(a,b)>40&&hav(b,c)>40&&hav(a,c)<25)continue;out.push([(a[0]+b[0]*2+c[0])/4,(a[1]+b[1]*2+c[1])/4])}out.push(pts[pts.length-1]);return out}
+async function saveRecord(){const loop=$('recLoop').checked;let pts=smooth(REC.pts);if(loop)pts=[...pts,pts[0]];const km=+(cumDist(pts).at(-1)/1000).toFixed(2);
+ if($('recMode').value==='lake'){if(!canReplaceLake())return toast(`천호지 코스는 이미 ${nickOf(crs('ch1').created_by)}님이 실측해 두었어요`);if(km<0.8)return toast('기록이 너무 짧아요. 둘레길을 한 바퀴 다 돈 뒤 저장해 주세요');
+  if(!confirm(`천호지 코스를 방금 기록한 ${km}km 경로로 바꿀까요? 모든 사용자에게 적용돼요.`))return;
+  const base={coords:pts,loop:true,created_by:UID,descr:'천호지 둘레길 실측 경로'};
+  const rows=[{...base,id:'ch1',name:'천호지 한 바퀴',km,diff:'쉬움',laps:1},{...base,id:'ch2',name:'천호지 두 바퀴',km:+(km*2).toFixed(2),diff:'보통',laps:2}];
+  const {error}=await sb.from('courses').upsert(rows);if(error)return err(error);
+  rows.forEach(r=>{const i=COURSES.findIndex(c=>c.id===r.id);if(i>=0)COURSES[i]=r;else COURSES.push(r)});toast('천호지 코스를 실측 경로로 바꿨어요');resetRecord();go('s-course');return}
+ const name=$('recName').value.trim();if(!name)return toast('코스 이름을 입력해 주세요');
  await saveCourseRow({id:'u'+Date.now().toString(36),name,km,diff:$('recDiff').value,descr:$('recDescr').value.trim(),coords:pts,loop,laps:1,created_by:UID});resetRecord()}
 async function importGPX(f){if(!f)return;const txt=await f.text();const doc=new DOMParser().parseFromString(txt,'text/xml');const pts=[...doc.querySelectorAll('trkpt, rtept')].map(p=>[+p.getAttribute('lat'),+p.getAttribute('lon')]);if(pts.length<10)return toast('GPX에 좌표가 부족해요');
  const name=prompt('코스 이름',doc.querySelector('name')?.textContent||f.name.replace('.gpx',''));if(!name)return;const km=+(cumDist(pts).at(-1)/1000).toFixed(2);const loop=hav(pts[0],pts.at(-1))<60;await saveCourseRow({id:'g'+Date.now().toString(36),name,km,diff:'보통',descr:'GPX에서 가져온 코스',coords:pts,loop,laps:1,created_by:UID})}
