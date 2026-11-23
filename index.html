@@ -80,7 +80,7 @@ code{background:var(--soft);padding:2px 6px;border-radius:6px;font-size:13px}
 </head>
 <body>
 <div class="app">
-<header class="top"><button class="back" id="topBack" onclick="back()" style="display:none">‹</button><h2 id="topTitle">페이스팔</h2><span class="chip" style="font-size:10px">v2.9</span><span class="status" id="netStatus">연결 중</span></header>
+<header class="top"><button class="back" id="topBack" onclick="back()" style="display:none">‹</button><h2 id="topTitle">페이스팔</h2><span class="chip" style="font-size:10px">v3.0</span><span class="status" id="netStatus">연결 중</span></header>
 <main id="main">
 <div class="inappbar">카카오톡 안에서 열렸어요. 오른쪽 위 ⋮ → <b>다른 브라우저로 열기</b>를 누르면 더 잘 보여요.</div>
 
@@ -134,6 +134,7 @@ code{background:var(--soft);padding:2px 6px;border-radius:6px;font-size:13px}
   <div class="row between"><span id="cDiff"></span><span class="chip" id="cRunners"></span></div><p class="mute" id="cDesc" style="margin:6px 0 10px"></p>
   <div class="map" id="cMap"></div>
   <div class="card row" style="justify-content:space-around;margin-top:12px"><div class="stat"><b id="cKm"></b><small>km</small></div><div class="stat"><b id="cBest">–</b><small>내 최고</small></div><div class="stat"><b id="cTop">–</b><small>1위 기록</small></div><div class="stat"><b id="cMyRank">–</b><small>내 순위</small></div></div>
+  <div class="card"><b>🏃‍♂️ 페이스메이커 훈련 모드</b><select id="planSel" onchange="PLAN=this.value;planInfo()" style="margin-top:8px"></select><select id="planBase" onchange="PBASE=this.value;planInfo()" style="margin-top:6px"><option value="sub3">쓰리섭 기준 페이스 (마라톤 4:15/km)</option><option value="me">내 수준 맞춤 (내 목표 페이스를 마라톤 페이스로 환산)</option></select><p class="mute" id="planDesc" style="margin:8px 0 0"></p><div id="planSegs" style="margin-top:6px"></div></div>
   <button class="btn pink wide" onclick="startRun('gps')">📍 GPS로 달리기</button>
   <div class="row" style="margin-top:8px"><button class="btn ghost grow" onclick="startRun('sim')">🧪 시뮬레이션</button><button class="btn ghost grow" onclick="openRank(curCourse)">🏆 랭킹</button><button class="btn ghost grow" onclick="openChat(curCourse)">💬 채팅</button></div>
   <div id="cOwner" style="margin-top:8px"></div>
@@ -151,6 +152,8 @@ code{background:var(--soft);padding:2px 6px;border-radius:6px;font-size:13px}
   <div class="card row between" style="padding:12px 16px"><div><b id="gapTxt"></b><div class="mute" id="gapSub"></div></div><div class="breath"><i></i><i style="animation-delay:.2s"></i><i style="animation-delay:.4s"></i><i style="animation-delay:.6s"></i></div></div>
   <div class="card row between" style="padding:12px 16px"><div><b>호흡</b> <span class="chip" id="brState">꺼짐</span><div id="breathTxt" class="mute">이어폰 마이크로 호흡 리듬을 읽어요 (실험 기능)</div></div><button class="btn sm ghost" id="brBtn" onclick="toggleBreath()">켜기</button></div>
   <div class="row" id="simCtl" style="display:none"><button class="btn mint grow" onclick="boost(0.88)">🔥 스퍼트</button><button class="btn grow" onclick="boost(1)">😌 유지</button><button class="btn ghost grow" onclick="boost(1.18)">🐢 쉬어가기</button></div>
+  <div class="card" id="segCard" style="display:none;padding:10px 16px"><b id="segNow"></b><div class="mute" id="segNext"></div></div>
+  <button class="btn mint wide" id="finBtn" style="margin-top:8px;display:none" onclick="finishRun()">🏁 완주로 저장</button>
   <button class="btn ghost wide" style="margin-top:8px" onclick="stopRun()">그만두기</button>
 </section>
 <section class="screen" id="s-result">
@@ -317,10 +320,10 @@ function renderAnalysis(){const rs=myRuns();$('anRuns').textContent=rs.length;$(
 async function promote(){ME.tier++;const {error}=await sb.from('profiles').update({tier:ME.tier}).eq('id',UID);if(error){ME.tier--;return err(error)}toast(`🎉 ${TIERS[ME.tier].n}로 승급!`);renderAnalysis()}
 
 /* ===== 코스 ===== */
-const bestOf=id=>{const r=myRuns().filter(r=>r.course===id);return r.length?Math.min(...r.map(r=>r.time_sec)):0};const topOf=id=>{const r=RUNS.filter(r=>r.course===id);return r.length?Math.min(...r.map(r=>r.time_sec)):0};
+const ranked=r=>!/part/.test(r.mode||'');const bestOf=id=>{const r=myRuns().filter(r=>r.course===id&&ranked(r));return r.length?Math.min(...r.map(r=>r.time_sec)):0};const topOf=id=>{const r=RUNS.filter(r=>r.course===id&&ranked(r));return r.length?Math.min(...r.map(r=>r.time_sec)):0};
 function renderCourses(){$('courseList').innerHTML=COURSES.map(c=>{const b=bestOf(c.id),n=new Set(RUNS.filter(r=>r.course===c.id).map(r=>r.user_id)).size;return `<div class="card tap" onclick="openCourse('${c.id}')"><div class="row between"><h3>${esc(c.name)}</h3><span class="pill p-${c.diff}">${c.diff}</span></div><div class="mute" style="margin-top:4px">${c.km}km · ${c.loop?'순환':'편도'}${c.laps>1?` ${c.laps}바퀴`:''} · ${n}명이 달렸어요${b?` · 내 최고 ${fmt(b)}`:''}${c.created_by?' · 실측':''}</div></div>`}).join('')}
 function openCourse(id){curCourse=id;const c=crs(id);go('s-detail');$('topTitle').textContent=c.name;$('cDiff').innerHTML=`<span class="pill p-${c.diff}">${c.diff}</span>`;$('cRunners').textContent=`${new Set(RUNS.filter(r=>r.course===id).map(r=>r.user_id)).size}명이 달렸어요`;$('cDesc').textContent=(c.descr||'')+(c.created_by?` · ${nickOf(c.created_by)}님이 실측`:'');
- $('cKm').textContent=c.km;$('cBest').textContent=bestOf(id)?fmt(bestOf(id)):'–';$('cTop').textContent=topOf(id)?fmt(topOf(id)):'–';const b=boardFor(id,'all'),mi=b.findIndex(x=>x.user_id===UID);$('cMyRank').textContent=mi>=0?`${mi+1}/${b.length}`:'–';
+ $('cKm').textContent=c.km;planInfo();$('cBest').textContent=bestOf(id)?fmt(bestOf(id)):'–';$('cTop').textContent=topOf(id)?fmt(topOf(id)):'–';const b=boardFor(id,'all'),mi=b.findIndex(x=>x.user_id===UID);$('cMyRank').textContent=mi>=0?`${mi+1}/${b.length}`:'–';
  $('cOwner').innerHTML=(['ch1','ch2'].includes(c.id)&&canReplaceLake())?`<button class="btn sm ghost" onclick="go('s-record')">⏺ 이 코스 다시 녹화하기</button>`:c.created_by===UID&&!['ch1','ch2'].includes(c.id)?`<button class="btn sm ghost" onclick="delCourse('${c.id}')">이 코스 삭제</button>`:'';
  const m=mkMap('cMap',c.coords[0]);drawCourse(m,c)}
 async function delCourse(id){if(!confirm('코스를 삭제할까요?'))return;const {error}=await sb.from('courses').delete().eq('id',id);if(error)return err(error);COURSES=COURSES.filter(c=>c.id!==id);toast('삭제했어요');go('s-course')}
@@ -349,13 +352,36 @@ async function saveRecord(){const loop=$('recLoop').checked;let pts=smooth(REC.p
 async function importGPX(f){if(!f)return;const txt=await f.text();const doc=new DOMParser().parseFromString(txt,'text/xml');const pts=[...doc.querySelectorAll('trkpt, rtept')].map(p=>[+p.getAttribute('lat'),+p.getAttribute('lon')]);if(pts.length<10)return toast('GPX에 좌표가 부족해요');
  const name=prompt('코스 이름',doc.querySelector('name')?.textContent||f.name.replace('.gpx',''));if(!name)return;const km=+(cumDist(pts).at(-1)/1000).toFixed(2);const loop=hav(pts[0],pts.at(-1))<60;await saveCourseRow({id:'g'+Date.now().toString(36),name,km,diff:'보통',descr:'GPX에서 가져온 코스',coords:pts,loop,laps:1,created_by:UID})}
 
+/* ===== 쓰리섭 훈련 플랜 (다니엘스 VDOT 54 기준: M 4:15 · T 4:00 · I 3:42 · E 5:10) ===== */
+const MP3=255;let PLAN='my',PBASE='sub3';
+const PLANS={my:['🙂 내 페이스','설정한 목표 페이스로 일정하게 달려요.'],
+ sub3:['⚡ 쓰리섭 체험','풀코스 2:59:59 페이스(4:15/km)를 그대로 따라가요. 이 속도로 42.195km를 버텨야 쓰리섭!'],
+ neg:['📈 네거티브 스플릿','전반은 조금 느리게, 후반은 더 빠르게. 평균은 마라톤 페이스. 대회에서 기록이 가장 잘 나오는 전략이에요.'],
+ tempo:['🔥 템포런 (역치)','워밍업 → 역치 페이스 지속 → 쿨다운. "편하게 힘든" 속도로 젖산역치를 올려 마라톤 페이스를 여유 있게 만들어요.'],
+ interval:['⏱ 인터벌 400/200','400m 빠르게 + 200m 조깅을 반복해요. 최대산소섭취량(VO2max)을 키우는 훈련. 빠른 구간은 3~5km 대회 속도예요.'],
+ build:['🪜 빌드업','4구간으로 나눠 점점 빨라져요. 지친 후반에 속도를 올리는 힘을 길러요.'],
+ mpf:['🌊 MP 플로트','마라톤 페이스와 조금 느린 플로트를 번갈아 달려요. 대회 페이스 감각을 몸에 새기는 훈련.']};
+function planSegs(id,total){const f=(id==='my'||id==='sub3'||PBASE!=='me')?1:ME.pace/MP3,P=x=>Math.round(x*f),S=[],add=(len,p,l)=>{const from=S.length?S.at(-1).to:0;S.push({to:Math.min(total,from+len),p,l})};
+ if(id==='my')add(total,ME.pace,'목표 페이스');else if(id==='sub3')add(total,MP3,'쓰리섭 페이스');
+ else if(id==='neg'){add(total/2,P(265),'전반 (참기)');add(total,P(245),'후반 (올리기)')}
+ else if(id==='tempo'){add(total*.2,P(310),'워밍업 조깅');add(total*.6,P(240),'역치 지속');add(total,P(310),'쿨다운')}
+ else if(id==='interval'){const w=total*.15;add(w,P(310),'워밍업 조깅');let k=1;while(S.at(-1).to<total*.85-50){add(400,P(222),`${k}번째 빠르게 400m`);if(S.at(-1).to<total*.85-50)add(200,P(330),'회복 조깅 200m');k++}add(total,P(310),'쿨다운')}
+ else if(id==='build'){[300,280,255,240].forEach((p,i)=>add(total/4,P(p),`${i+1}단계`))}
+ else if(id==='mpf'){const u=total>=3000?1000:500;let i=0;while(S.length===0||S.at(-1).to<total){add(u,P(i%2?285:255),i%2?'플로트':'마라톤 페이스');i++}}
+ S.at(-1).to=total;return S}
+const segAt=(S,d)=>S.findIndex(x=>d<x.to)<0?S.length-1:S.findIndex(x=>d<x.to);
+function planInfo(){const c=crs(curCourse);if(!c||!$('planSel'))return;$('planSel').innerHTML=Object.entries(PLANS).map(([k,v])=>`<option value="${k}" ${k===PLAN?'selected':''}>${v[0]}</option>`).join('');$('planBase').value=PBASE;$('planBase').style.display=(PLAN==='my'||PLAN==='sub3')?'none':'';
+ const tot=cumDist(c.coords).at(-1)*(c.laps||1),S=planSegs(PLAN,tot);let from=0,T=0;const rows=S.map(x=>{const len=x.to-from;from=x.to;T+=len/1000*x.p;return {l:x.l,len,p:x.p}});
+ const grp=[];rows.forEach(x=>{const g=grp.find(y=>y.l.replace(/^\d+번째 /,'')===x.l.replace(/^\d+번째 /,'')&&y.p===x.p&&/400m|200m|플로트|마라톤/.test(x.l));if(g){g.n++;g.len+=x.len}else grp.push({...x,n:1})});
+ $('planDesc').textContent=PLANS[PLAN][1]+(PLAN!=='my'?` 예상 완주 ${fmt(T)}.`:'');$('planSegs').innerHTML=PLAN==='my'?'':grp.map(x=>`<div class="row between mute" style="font-size:12px"><span>${x.n>1?x.l.replace(/^\d+번째 /,'')+` ×${x.n}`:x.l} · ${Math.round(x.len)}m</span><b>${fmt(x.p)}/km</b></div>`).join('')}
+
 /* ===== 달리기 (GPS / 시뮬레이션) ===== */
 let R=null,follow=true;
-function startRun(mode){const c=crs(curCourse),pc=pcr(ME.pacer);if(mode==='gps'&&!navigator.geolocation)return toast('이 기기는 GPS를 쓸 수 없어요');go('s-run');$('topTitle').textContent=c.name;$('rPace').textContent=`목표 ${fmt(ME.pace)}/km · ${pc.ic}${pc.name}`;$('rMode').textContent=mode==='gps'?'📍 GPS':'🧪 시뮬레이션';$('simCtl').style.display=mode==='sim'?'':'none';$('rGps').textContent=mode==='gps'?'GPS 대기':'';
+function startRun(mode){const c=crs(curCourse),pc=pcr(ME.pacer);if(mode==='gps'&&!navigator.geolocation)return toast('이 기기는 GPS를 쓸 수 없어요');go('s-run');$('topTitle').textContent=c.name;$('rPace').textContent=PLAN==='my'?`목표 ${fmt(ME.pace)}/km · ${pc.ic}${pc.name}`:`${PLANS[PLAN][0]} · ${pc.ic}${pc.name}`;$('segCard').style.display=PLAN==='my'?'none':'';$('finBtn').style.display='none';$('rMode').textContent=mode==='gps'?'📍 GPS':'🧪 시뮬레이션';$('simCtl').style.display=mode==='sim'?'':'none';$('rGps').textContent=mode==='gps'?'GPS 대기':'';
  const cum=cumDist(c.coords);const per=cum[cum.length-1];const total=per*(c.laps||1);
- R={c,mode,cum,per,total,t0:Date.now(),t:0,me:0,pacer:0,mod:1,lastKm:0,lastT:0,splits:[],slow:0,vib:0,mePace:null,hist:[],lastFix:null,recent:[],done:false,map:null};
+ const segs=planSegs(PLAN,total);R={c,mode,cum,per,total,segs,plan:PLAN,seg:-1,tgt:segs[0].p,pt:0,t0:Date.now(),t:0,me:0,pacer:0,mod:1,lastKm:0,lastT:0,splits:[],slow:0,vib:0,mePace:null,hist:[],lastFix:null,recent:[],done:false,map:null};
  const m=mkMap('rMap',c.coords[0],16);drawCourse(m,c);R.map=m;R.pacerMk=L.marker(c.coords[0],{icon:emojiIcon(pc.ic,true),zIndexOffset:500}).addTo(m);R.meMk=L.marker(c.coords[0],{icon:mode==='gps'?meIcon:emojiIcon('🏃',true),zIndexOffset:1000}).addTo(m);R.trail=L.polyline([],{color:'#2F7BFF',weight:4,opacity:.8}).addTo(m);
- setFollow(true);keepAwake(true);say(`${c.name} 출발합니다. 목표 페이스 ${Math.floor(ME.pace/60)}분 ${ME.pace%60}초`);
+ setFollow(true);keepAwake(true);say(`${c.name} 출발합니다. ${PLAN==='my'?`목표 페이스 ${Math.floor(ME.pace/60)}분 ${ME.pace%60}초`:PLANS[PLAN][0].replace(/^\S+ /,'')+' 훈련'}`);
  if(mode==='gps'){R.watch=navigator.geolocation.watchPosition(onFix,e=>{$('rGps').textContent='GPS 오류';toast('위치 권한을 허용해 주세요')},{enableHighAccuracy:true,maximumAge:0,timeout:15000})}
  R.iv=setInterval(tick,1000)}
 function onFix(p){if(!R||R.done)return;const {latitude:la,longitude:lo,accuracy:ac}=p.coords;$('rGps').textContent=`GPS ±${Math.round(ac)}m`;if(ac>40)return;const pt=[la,lo],now=Date.now();
@@ -363,24 +389,24 @@ function onFix(p){if(!R||R.done)return;const {latitude:la,longitude:lo,accuracy:
  else{R.me=0}R.lastFix={pt,t:now};R.trail.addLatLng(pt);R.meMk.setLatLng(pt);if(follow)R.map.panTo(pt)}
 function boost(m){if(!R)return;R.mod=m;toast(m<1?'스퍼트! 🔥':m>1?'잠깐 쉬어가요 🐢':'페이스 유지 😌')}
 function tick(){if(!R||R.done)return;const r=R;r.t=r.mode==='sim'?r.t+10:(Date.now()-r.t0)/1000;
- if(r.mode==='sim'){const prog=r.me/r.total;const fat=prog>0.55?(prog-0.55)*0.5:0;const pace=ME.pace*r.mod*(1+fat)*(1+Math.sin(r.t/70)*0.03);r.mePace=pace;r.me+=10*1000/pace;const p=pointAt(r.c.coords,r.cum,r.me>=r.total?r.per:r.me%r.per);r.meMk.setLatLng(p);r.trail.addLatLng(p);if(follow)r.map.panTo(p)}
- r.pacer=r.t*1000/ME.pace;const pp=pointAt(r.c.coords,r.cum,r.pacer>=r.total?r.per:r.pacer%r.per);r.pacerMk.setLatLng(pp);
+ if(r.mode==='sim'){const prog=r.me/r.total;const fat=prog>0.55?(prog-0.55)*0.5:0;const pace=r.tgt*r.mod*(1+fat)*(1+Math.sin(r.t/70)*0.03);r.mePace=pace;r.me+=10*1000/pace;const p=pointAt(r.c.coords,r.cum,r.me>=r.total?r.per:r.me%r.per);r.meMk.setLatLng(p);r.trail.addLatLng(p);if(follow)r.map.panTo(p)}
+ const dt=r.t-r.pt;r.pt=r.t;r.pacer=Math.min(r.total,r.pacer+dt*1000/r.segs[segAt(r.segs,r.pacer)].p);const si=segAt(r.segs,r.me);if(si!==r.seg){r.seg=si;const g=r.segs[si];r.tgt=g.p;if(r.plan!=='my'){$('segNow').textContent=`${g.l} · ${fmt(g.p)}/km`;const nx=r.segs[si+1];$('segNext').textContent=nx?`다음: ${nx.l} ${fmt(nx.p)}/km (${Math.round(g.to-r.me)}m 후)`:'마지막 구간!';if(si>0)alertAll(`▶ ${g.l} ${fmt(g.p)}/km`,`${g.l}, ${Math.floor(g.p/60)}분 ${g.p%60}초 페이스`)}}else if(r.plan!=='my'&&r.segs[si+1])$('segNext').textContent=`다음: ${r.segs[si+1].l} ${fmt(r.segs[si+1].p)}/km (${Math.round(r.segs[si].to-r.me)}m 후)`;const pp=pointAt(r.c.coords,r.cum,r.pacer>=r.total?r.per:r.pacer%r.per);r.pacerMk.setLatLng(pp);
  if(r.mePace)r.hist.push(r.mePace);
  if(Math.floor(r.me/1000)>r.lastKm){r.lastKm++;const sp=r.t-r.lastT;r.splits.push(Math.round(sp));r.lastT=r.t;alertAll(`${r.lastKm}km 통과! ${fmt(sp)}`,`${r.lastKm}킬로미터, ${Math.floor(sp/60)}분 ${Math.round(sp%60)}초`)}
- if(r.mePace&&r.mePace>ME.pace*1.07&&r.me>100){r.slow++;if(r.slow===8){$('rMap').classList.remove('shake');void $('rMap').offsetWidth;$('rMap').classList.add('shake');alertAll('📳 페이스가 떨어졌어요! 조금만 더 힘내요','페이스가 떨어졌어요. 페이스메이커를 따라가요');r.vib++;r.slow=0}}else r.slow=0;
- draw();if(r.me>=r.total)finishRun()}
+ if(r.mePace&&r.mePace>r.tgt*1.07&&r.me>100&&!/조깅|쿨다운|워밍업/.test(r.segs[r.seg]?.l||'')){r.slow++;if(r.slow===8){$('rMap').classList.remove('shake');void $('rMap').offsetWidth;$('rMap').classList.add('shake');alertAll('📳 페이스가 떨어졌어요! 조금만 더 힘내요','페이스가 떨어졌어요. 페이스메이커를 따라가요');r.vib++;r.slow=0}}else r.slow=0;
+ draw();$('finBtn').style.display=r.me>=r.total*.8?'':'none';const end=r.c.coords.at(-1);if(r.me>=r.total||(r.mode==='gps'&&r.lastFix&&r.me>=r.total*.9&&hav(r.lastFix.pt,end)<35))finishRun()}
 function draw(){const r=R;$('hTime').textContent=fmt(r.t);$('hDist').textContent=(r.me/1000).toFixed(2);$('hPace').textContent=r.mePace?fmt(Math.min(r.mePace,1800)):'–';const gap=r.me-r.pacer;$('hGap').textContent=(gap>=0?'+':'')+Math.round(gap)+'m';
  if(Math.abs(gap)<15){$('gapTxt').textContent='페이스메이커와 나란히 🤝';$('gapSub').textContent='딱 좋아요'}else if(gap>0){$('gapTxt').textContent=`${Math.round(gap)}m 앞서는 중 🔥`;$('gapSub').textContent='너무 빠르면 후반에 힘들어요'}else{$('gapTxt').textContent=`${Math.round(-gap)}m 뒤처짐 💨`;$('gapSub').textContent='페이스메이커를 따라가요'}
- const ratio=r.mePace?r.mePace/ME.pace:1;document.querySelectorAll('.breath i').forEach(i=>i.style.animationDuration=(0.5+ratio*0.7)+'s')}
+ const ratio=r.mePace?r.mePace/r.tgt:1;document.querySelectorAll('.breath i').forEach(i=>i.style.animationDuration=(0.5+ratio*0.7)+'s')}
 function setFollow(f){follow=f;$('zIn').classList.toggle('cur',f);$('zOut').classList.toggle('cur',!f);if(!R)return;if(f){R.map.setView(R.meMk.getLatLng(),17)}else R.map.fitBounds(L.polyline(R.c.coords).getBounds(),{padding:[24,24]})}
 function endRunWatch(){if(!R)return;clearInterval(R.iv);if(R.watch!=null)navigator.geolocation.clearWatch(R.watch);keepAwake(false);stopBreath()}
-function stopRun(silent){endRunWatch();R=null;if(!silent){toast('달리기를 중단했어요');go('s-detail',false)}}
-async function finishRun(){const r=R;r.done=true;endRunWatch();const avg=r.t/(r.me/1000);const left=r.me-r.lastKm*1000;if(left>80)r.splits.push(Math.round((r.t-r.lastT)*1000/left));
+function stopRun(silent){if(!silent&&R&&!R.done&&R.me>=300){if(R.me>=R.total*.8&&confirm('80% 이상 달렸어요. 완주 기록으로 저장할까요? (랭킹 반영)'))return finishRun();if(confirm(`${(R.me/1000).toFixed(2)}km 달린 기록을 저장할까요? (랭킹에는 안 들어가요)`))return finishRun(true)}endRunWatch();R=null;if(!silent){toast('달리기를 중단했어요');go('s-detail',false)}}
+async function finishRun(part){const r=R;if(!r||r.done)return;r.done=true;endRunWatch();const avg=r.t/(r.me/1000);const left=r.me-r.lastKm*1000;if(left>80)r.splits.push(Math.round((r.t-r.lastT)*1000/left));
  const h=r.hist.length?r.hist:[avg];const q=4,seg=Math.max(1,Math.floor(h.length/q)),qs=[];for(let i=0;i<q;i++){const a=h.slice(i*seg,i===q-1?undefined:(i+1)*seg);qs.push(a.length?a.reduce((x,y)=>x+y,0)/a.length:avg)}
  const mean=qs.reduce((a,b)=>a+b)/q,sd=Math.sqrt(qs.reduce((a,b)=>a+(b-mean)**2,0)/q);let type;
  if(avg>ME.pace*1.15)type='walk';else if(sd/mean<0.025&&Math.abs(avg-ME.pace)/ME.pace<0.03)type='glue';else if(qs[0]<qs[3]*0.9)type='fire';else if(qs[3]<qs[0]*0.92)type='late';else if(sd/mean>0.08)type='coaster';else type='metro';
- const {data,error}=await sb.from('runs').insert({user_id:UID,course:r.c.id,km:+(r.me/1000).toFixed(2),time_sec:Math.round(r.t),avg_pace:+avg.toFixed(1),run_type:type,vib:r.vib,splits:r.splits,mode:r.mode}).select().single();if(error)err(error);else RUNS.unshift(data);
- const T=TYPES[type];$('resIc').textContent=T[0];$('resType').textContent=T[1];$('resDesc').textContent=T[2];$('resTime').textContent=fmt(r.t);$('resPace').textContent=fmt(avg)+'/km';const b=boardFor(r.c.id,'all');$('resRank').textContent=((b.findIndex(x=>x.user_id===UID)+1)||'–')+`위 / ${b.length}명`;
+ const {data,error}=await sb.from('runs').insert({user_id:UID,course:r.c.id,km:+(r.me/1000).toFixed(2),time_sec:Math.round(r.t),avg_pace:+avg.toFixed(1),run_type:type,vib:r.vib,splits:r.splits,mode:r.mode+(r.plan!=='my'?':'+r.plan:'')+(part?'-part':'')}).select().single();if(error)err(error);else RUNS.unshift(data);
+ const T=TYPES[type];$('resIc').textContent=T[0];$('resType').textContent=T[1];$('resDesc').textContent=T[2];$('resTime').textContent=fmt(r.t);$('resPace').textContent=fmt(avg)+'/km';const b=boardFor(r.c.id,'all');$('resRank').textContent=part?'랭킹 제외':((b.findIndex(x=>x.user_id===UID)+1)||'–')+`위 / ${b.length}명`;
  $('splits').innerHTML=qs.map((p,i)=>`<div class="row" style="margin:4px 0"><span style="width:52px" class="mute">${['초반','전반','후반','막판'][i]}</span><div class="bar grow"><i style="width:${Math.min(100,ME.pace/p*85)}%;background:${p>ME.pace*1.07?'#FFC2A8':'#9FE3CB'}"></i></div><span style="width:48px;text-align:right">${fmt(p)}</span></div>`).join('')+(r.splits.length?`<p class="mute" style="margin:8px 0 0">km 구간: ${r.splits.map((s,i)=>`${i+1}km ${fmt(s)}`).join(' · ')}</p>`:'');
  const pc=pcr(ME.pacer);$('resPacer').innerHTML=`<div class="row"><span style="font-size:32px">${pc.ic}</span><div><b>${pc.name}의 한마디</b><div class="mute">${r.vib?`페이스 알림이 ${r.vib}번 울렸어요. 다음엔 초반을 아껴볼까요?`:'한 번도 페이스가 안 떨어졌어요. 최고!'}</div></div></div>`;
  say('완주했어요. 수고했어요!');vib([300,100,300,100,300]);R=null;go('s-result')}
@@ -399,7 +425,7 @@ function breathTick(){if(!BR)return;BR.an.getFloatTimeDomainData(BR.buf);let s=0
 function stopBreath(){if(!BR)return;clearInterval(BR.iv);BR.st.getTracks().forEach(t=>t.stop());window.removeEventListener('devicemotion',BR.motion);BR=null;$('brState').textContent='꺼짐';$('brBtn').textContent='켜기';$('breathTxt').textContent='이어폰 마이크로 호흡 리듬을 읽어요 (실험 기능)'}
 
 /* ===== 랭킹 ===== */
-function boardFor(id,period){const since=period==='week'?Date.now()-7*864e5:period==='today'?new Date(new Date().toDateString()).getTime():0;const best={};RUNS.filter(r=>r.course===id&&new Date(r.created_at).getTime()>=since).forEach(r=>{if(!best[r.user_id]||r.time_sec<best[r.user_id].time_sec)best[r.user_id]=r});return Object.values(best).sort((a,b)=>a.time_sec-b.time_sec)}
+function boardFor(id,period){const since=period==='week'?Date.now()-7*864e5:period==='today'?new Date(new Date().toDateString()).getTime():0;const best={};RUNS.filter(r=>r.course===id&&ranked(r)&&new Date(r.created_at).getTime()>=since).forEach(r=>{if(!best[r.user_id]||r.time_sec<best[r.user_id].time_sec)best[r.user_id]=r});return Object.values(best).sort((a,b)=>a.time_sec-b.time_sec)}
 function openRank(id){curCourse=id||curCourse;go('s-rank');$('rankTabs').innerHTML=COURSES.map(c=>`<button class="${c.id===curCourse?'cur':''}" onclick="openRank('${c.id}')">${esc(c.name)}</button>`).join('');document.querySelectorAll('#rankPeriod button').forEach((b,i)=>b.classList.toggle('cur',['all','week','today'][i]===rankPeriod));
  const b=boardFor(curCourse,rankPeriod);const mi=b.findIndex(x=>x.user_id===UID);
  $('rival').innerHTML=mi>0?`<b>🎯 바로 위 라이벌</b><div class="row between" style="margin-top:6px"><span>${icOf(b[mi-1].user_id)} ${esc(nickOf(b[mi-1].user_id))} (${mi}위)</span><b>${fmt(b[mi-1].time_sec)}</b></div><div class="mute">${fmt(b[mi].time_sec-b[mi-1].time_sec)} 더 빨리 뛰면 ${mi}위로 올라가요</div>`:mi===0?'<b>👑 이 코스 1위예요!</b><div class="mute">2위와 '+(b[1]?fmt(b[1].time_sec-b[0].time_sec)+' 차이':'아직 경쟁자 없음')+'</div>':'<b>🎯 아직 기록이 없어요</b><div class="mute">한 번 완주하면 순위가 생겨요</div>';
