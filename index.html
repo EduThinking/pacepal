@@ -80,7 +80,7 @@ code{background:var(--soft);padding:2px 6px;border-radius:6px;font-size:13px}
 </head>
 <body>
 <div class="app">
-<header class="top"><button class="back" id="topBack" onclick="back()" style="display:none">‹</button><h2 id="topTitle">페이스팔</h2><span class="chip" style="font-size:10px">v3.1</span><span class="status" id="netStatus">연결 중</span></header>
+<header class="top"><button class="back" id="topBack" onclick="back()" style="display:none">‹</button><h2 id="topTitle">페이스팔</h2><span class="chip" style="font-size:10px">v3.2</span><span class="status" id="netStatus">연결 중</span></header>
 <main id="main">
 <div class="inappbar">카카오톡 안에서 열렸어요. 오른쪽 위 ⋮ → <b>다른 브라우저로 열기</b>를 누르면 더 잘 보여요.</div>
 
@@ -245,7 +245,7 @@ const PREF={vib:true,voice:true,beep:true};try{Object.assign(PREF,JSON.parse(loc
 let AC=null;function beep(n=2){if(!PREF.beep)return;try{AC=AC||new (window.AudioContext||window.webkitAudioContext)();for(let i=0;i<n;i++){const o=AC.createOscillator(),g=AC.createGain();o.frequency.value=880;o.connect(g);g.connect(AC.destination);const t=AC.currentTime+i*0.25;g.gain.setValueAtTime(0.3,t);g.gain.exponentialRampToValueAtTime(0.001,t+0.18);o.start(t);o.stop(t+0.2)}}catch(e){}}
 function vib(p){if(PREF.vib)try{navigator.vibrate&&navigator.vibrate(p)}catch(e){}}
 function say(t){if(!PREF.voice||!window.speechSynthesis)return;try{const u=new SpeechSynthesisUtterance(t);u.lang='ko-KR';u.rate=1.05;speechSynthesis.cancel();speechSynthesis.speak(u)}catch(e){}}
-function alertAll(msg,speak){vib([250,100,250]);beep(2);toast(msg);if(speak)say(speak)}
+function alertAll(msg,speak,pat){vib(pat||[250,100,250]);beep(2);toast(msg);if(speak)say(speak)}
 let wake=null;async function keepAwake(on){try{if(on&&'wakeLock'in navigator)wake=await navigator.wakeLock.request('screen');else if(!on&&wake){await wake.release();wake=null}}catch(e){}}
 
 /* ===== 화면 ===== */
@@ -393,8 +393,8 @@ function tick(){if(!R||R.done)return;const r=R;r.t=r.mode==='sim'?r.t+10:(Date.n
  const dt=r.t-r.pt;r.pt=r.t;r.pacer=Math.min(r.total,r.pacer+dt*1000/r.segs[segAt(r.segs,r.pacer)].p);const si=segAt(r.segs,r.me);if(si!==r.seg){r.seg=si;const g=r.segs[si];r.tgt=g.p;if(r.plan!=='my'){$('segNow').textContent=`${g.l} · ${fmt(g.p)}/km`;const nx=r.segs[si+1];$('segNext').textContent=nx?`다음: ${nx.l} ${fmt(nx.p)}/km (${Math.round(g.to-r.me)}m 후)`:'마지막 구간!';if(si>0)alertAll(`▶ ${g.l} ${fmt(g.p)}/km`,`${g.l}, ${Math.floor(g.p/60)}분 ${g.p%60}초 페이스`)}}else if(r.plan!=='my'&&r.segs[si+1])$('segNext').textContent=`다음: ${r.segs[si+1].l} ${fmt(r.segs[si+1].p)}/km (${Math.round(r.segs[si].to-r.me)}m 후)`;const pp=pointAt(r.c.coords,r.cum,r.pacer>=r.total?r.per:r.pacer%r.per);r.pacerMk.setLatLng(pp);
  if(r.mePace)r.hist.push(r.mePace);
  if(Math.floor(r.me/1000)>r.lastKm){r.lastKm++;const sp=r.t-r.lastT;r.splits.push(Math.round(sp));r.lastT=r.t;alertAll(`${r.lastKm}km 통과! ${fmt(sp)}`,`${r.lastKm}킬로미터, ${Math.floor(sp/60)}분 ${Math.round(sp%60)}초`)}
- if(r.mePace&&r.mePace>r.tgt*1.07&&r.me>100&&!/조깅|쿨다운|워밍업/.test(r.segs[r.seg]?.l||'')){r.slow++;if(r.slow===8){$('rMap').classList.remove('shake');void $('rMap').offsetWidth;$('rMap').classList.add('shake');alertAll('📳 페이스가 떨어졌어요! 조금만 더 힘내요','페이스가 떨어졌어요. 페이스메이커를 따라가요');r.vib++;r.slow=0}}else r.slow=0;
- if(r.mePace&&r.mePace<r.tgt*0.93&&r.me>100&&r.t-(r.fastAt||-99)>30){r.fast=(r.fast||0)+1;if(r.fast===8){r.fast=0;r.fastAt=r.t;r.over=(r.over||0)+1;alertAll(`🚦 오버페이스! 지금 ${fmt(r.mePace)}/km, 목표 ${fmt(r.tgt)}/km예요. 조금 늦춰요`,`너무 빨라요. 목표보다 ${Math.round(r.tgt-r.mePace)}초 빠릅니다. 속도를 조금 줄여요`)}}else if(!(r.mePace<r.tgt*0.93))r.fast=0;
+ if(r.mePace&&r.mePace>r.tgt*1.07&&r.me>100&&!/조깅|쿨다운|워밍업/.test(r.segs[r.seg]?.l||'')){r.slow++;if(r.slow===8){$('rMap').classList.remove('shake');void $('rMap').offsetWidth;$('rMap').classList.add('shake');alertAll(`🐢 너무 느려요! 지금 ${fmt(r.mePace)}/km, 목표 ${fmt(r.tgt)}/km예요. 조금만 힘내요`,'너무 느려요. 페이스메이커를 따라가요',[600,150,600]);r.vib++;r.slow=0}}else r.slow=0;
+ if(r.mePace&&r.mePace<r.tgt*0.93&&r.me>100&&r.t-(r.fastAt||-99)>30){r.fast=(r.fast||0)+1;if(r.fast===8){r.fast=0;r.fastAt=r.t;r.over=(r.over||0)+1;$('rMap').classList.remove('shake');void $('rMap').offsetWidth;$('rMap').classList.add('shake');alertAll(`🚦 오버페이스! 지금 ${fmt(r.mePace)}/km, 목표 ${fmt(r.tgt)}/km예요. 조금 늦춰요`,`너무 빨라요. 목표보다 ${Math.round(r.tgt-r.mePace)}초 빠릅니다. 속도를 조금 줄여요`,[120,80,120,80,120])}}else if(!(r.mePace<r.tgt*0.93))r.fast=0;
  draw();$('finBtn').style.display=r.me>=r.total*.8?'':'none';const end=r.c.coords.at(-1);if(r.me>=r.total||(r.mode==='gps'&&r.lastFix&&r.me>=r.total*.9&&hav(r.lastFix.pt,end)<35))finishRun()}
 function draw(){const r=R;$('hTime').textContent=fmt(r.t);$('hDist').textContent=(r.me/1000).toFixed(2);$('hPace').textContent=r.mePace?fmt(Math.min(r.mePace,1800)):'–';const gap=r.me-r.pacer;$('hGap').textContent=(gap>=0?'+':'')+Math.round(gap)+'m';
  if(Math.abs(gap)<15){$('gapTxt').textContent='페이스메이커와 나란히 🤝';$('gapSub').textContent='딱 좋아요'}else if(gap>0){$('gapTxt').textContent=`${Math.round(gap)}m 앞서는 중 🔥`;$('gapSub').textContent='너무 빠르면 후반에 힘들어요'}else{$('gapTxt').textContent=`${Math.round(-gap)}m 뒤처짐 💨`;$('gapSub').textContent='페이스메이커를 따라가요'}
