@@ -80,7 +80,7 @@ code{background:var(--soft);padding:2px 6px;border-radius:6px;font-size:13px}
 </head>
 <body>
 <div class="app">
-<header class="top"><button class="back" id="topBack" onclick="back()" style="display:none">‹</button><h2 id="topTitle">페이스팔</h2><span class="chip" style="font-size:10px">v3.0</span><span class="status" id="netStatus">연결 중</span></header>
+<header class="top"><button class="back" id="topBack" onclick="back()" style="display:none">‹</button><h2 id="topTitle">페이스팔</h2><span class="chip" style="font-size:10px">v3.1</span><span class="status" id="netStatus">연결 중</span></header>
 <main id="main">
 <div class="inappbar">카카오톡 안에서 열렸어요. 오른쪽 위 ⋮ → <b>다른 브라우저로 열기</b>를 누르면 더 잘 보여요.</div>
 
@@ -394,6 +394,7 @@ function tick(){if(!R||R.done)return;const r=R;r.t=r.mode==='sim'?r.t+10:(Date.n
  if(r.mePace)r.hist.push(r.mePace);
  if(Math.floor(r.me/1000)>r.lastKm){r.lastKm++;const sp=r.t-r.lastT;r.splits.push(Math.round(sp));r.lastT=r.t;alertAll(`${r.lastKm}km 통과! ${fmt(sp)}`,`${r.lastKm}킬로미터, ${Math.floor(sp/60)}분 ${Math.round(sp%60)}초`)}
  if(r.mePace&&r.mePace>r.tgt*1.07&&r.me>100&&!/조깅|쿨다운|워밍업/.test(r.segs[r.seg]?.l||'')){r.slow++;if(r.slow===8){$('rMap').classList.remove('shake');void $('rMap').offsetWidth;$('rMap').classList.add('shake');alertAll('📳 페이스가 떨어졌어요! 조금만 더 힘내요','페이스가 떨어졌어요. 페이스메이커를 따라가요');r.vib++;r.slow=0}}else r.slow=0;
+ if(r.mePace&&r.mePace<r.tgt*0.93&&r.me>100&&r.t-(r.fastAt||-99)>30){r.fast=(r.fast||0)+1;if(r.fast===8){r.fast=0;r.fastAt=r.t;r.over=(r.over||0)+1;alertAll(`🚦 오버페이스! 지금 ${fmt(r.mePace)}/km, 목표 ${fmt(r.tgt)}/km예요. 조금 늦춰요`,`너무 빨라요. 목표보다 ${Math.round(r.tgt-r.mePace)}초 빠릅니다. 속도를 조금 줄여요`)}}else if(!(r.mePace<r.tgt*0.93))r.fast=0;
  draw();$('finBtn').style.display=r.me>=r.total*.8?'':'none';const end=r.c.coords.at(-1);if(r.me>=r.total||(r.mode==='gps'&&r.lastFix&&r.me>=r.total*.9&&hav(r.lastFix.pt,end)<35))finishRun()}
 function draw(){const r=R;$('hTime').textContent=fmt(r.t);$('hDist').textContent=(r.me/1000).toFixed(2);$('hPace').textContent=r.mePace?fmt(Math.min(r.mePace,1800)):'–';const gap=r.me-r.pacer;$('hGap').textContent=(gap>=0?'+':'')+Math.round(gap)+'m';
  if(Math.abs(gap)<15){$('gapTxt').textContent='페이스메이커와 나란히 🤝';$('gapSub').textContent='딱 좋아요'}else if(gap>0){$('gapTxt').textContent=`${Math.round(gap)}m 앞서는 중 🔥`;$('gapSub').textContent='너무 빠르면 후반에 힘들어요'}else{$('gapTxt').textContent=`${Math.round(-gap)}m 뒤처짐 💨`;$('gapSub').textContent='페이스메이커를 따라가요'}
@@ -408,7 +409,7 @@ async function finishRun(part){const r=R;if(!r||r.done)return;r.done=true;endRun
  const {data,error}=await sb.from('runs').insert({user_id:UID,course:r.c.id,km:+(r.me/1000).toFixed(2),time_sec:Math.round(r.t),avg_pace:+avg.toFixed(1),run_type:type,vib:r.vib,splits:r.splits,mode:r.mode+(r.plan!=='my'?':'+r.plan:'')+(part?'-part':'')}).select().single();if(error)err(error);else RUNS.unshift(data);
  const T=TYPES[type];$('resIc').textContent=T[0];$('resType').textContent=T[1];$('resDesc').textContent=T[2];$('resTime').textContent=fmt(r.t);$('resPace').textContent=fmt(avg)+'/km';const b=boardFor(r.c.id,'all');$('resRank').textContent=part?'랭킹 제외':((b.findIndex(x=>x.user_id===UID)+1)||'–')+`위 / ${b.length}명`;
  $('splits').innerHTML=qs.map((p,i)=>`<div class="row" style="margin:4px 0"><span style="width:52px" class="mute">${['초반','전반','후반','막판'][i]}</span><div class="bar grow"><i style="width:${Math.min(100,ME.pace/p*85)}%;background:${p>ME.pace*1.07?'#FFC2A8':'#9FE3CB'}"></i></div><span style="width:48px;text-align:right">${fmt(p)}</span></div>`).join('')+(r.splits.length?`<p class="mute" style="margin:8px 0 0">km 구간: ${r.splits.map((s,i)=>`${i+1}km ${fmt(s)}`).join(' · ')}</p>`:'');
- const pc=pcr(ME.pacer);$('resPacer').innerHTML=`<div class="row"><span style="font-size:32px">${pc.ic}</span><div><b>${pc.name}의 한마디</b><div class="mute">${r.vib?`페이스 알림이 ${r.vib}번 울렸어요. 다음엔 초반을 아껴볼까요?`:'한 번도 페이스가 안 떨어졌어요. 최고!'}</div></div></div>`;
+ const pc=pcr(ME.pacer);$('resPacer').innerHTML=`<div class="row"><span style="font-size:32px">${pc.ic}</span><div><b>${pc.name}의 한마디</b><div class="mute">${[r.vib?`느려짐 알림 ${r.vib}번`:'',r.over?`오버페이스 알림 ${r.over}번`:''].filter(Boolean).join(' · ')||'한 번도 페이스가 흔들리지 않았어요. 최고!'}${r.over?' 초반에 힘을 아끼면 후반이 편해져요.':r.vib?' 다음엔 초반을 아껴볼까요?':''}</div></div></div>`;
  say('완주했어요. 수고했어요!');vib([300,100,300,100,300]);R=null;go('s-result')}
 
 /* ===== 호흡 분석 (실험) ===== */
