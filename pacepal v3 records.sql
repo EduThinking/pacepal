@@ -4,7 +4,7 @@
 do $$
 declare
   rw text; me uuid; js uuid := '11111111-0000-4000-8000-00000000a001'; jf uuid := '11111111-0000-4000-8000-00000000a002';
-  c record; best int; km numeric;
+  c record; best int;
 begin
   select id, created_by into rw, me from courses where name like '%로드웍%' order by created_at limit 1;
   if rw is null then raise exception '로드웍 코스를 찾지 못했어요'; end if;
@@ -25,16 +25,16 @@ begin
   end if;
 
   -- 더미 기록: 코스별 현재 1위 기록 기준 ±
-  for c in select id, coalesce((select km from courses where id = x.id), x.dkm) as km from (values ('ch1', 1.9::numeric), (rw, 3.55::numeric)) as x(id, dkm) loop
+  for c in select id, coalesce((select km from courses where id = x.id), x.dkm) as ckm from (values ('ch1', 1.9::numeric), (rw, 3.55::numeric)) as x(id, dkm) loop
     select min(time_sec) into best from runs where course = c.id and user_id not in (js, jf) and coalesce(mode,'') not like '%part%';
-    best := coalesce(best, round(c.km * 400));
+    best := coalesce(best, round(c.ckm * 400));
     if not exists (select 1 from runs where user_id = js and course = c.id) then
       insert into runs (user_id, course, km, time_sec, avg_pace, run_type, vib, created_at, mode)
-      values (js, c.id, c.km, round(best * 0.97), round(best * 0.97 / c.km, 1), 'late', 0, now() - interval '2 days', 'gps');
+      values (js, c.id, c.ckm, round(best * 0.97), round(best * 0.97 / c.ckm, 1), 'late', 0, now() - interval '2 days', 'gps');
     end if;
     if not exists (select 1 from runs where user_id = jf and course = c.id) then
       insert into runs (user_id, course, km, time_sec, avg_pace, run_type, vib, created_at, mode)
-      values (jf, c.id, c.km, round(best * 1.05), round(best * 1.05 / c.km, 1), 'glue', 1, now() - interval '1 day', 'gps');
+      values (jf, c.id, c.ckm, round(best * 1.05), round(best * 1.05 / c.ckm, 1), 'glue', 1, now() - interval '1 day', 'gps');
     end if;
   end loop;
 end $$;
